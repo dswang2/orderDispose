@@ -77,7 +77,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private DrawerLayout mDrawerLayout;
 
     //对话框
-    private Dialog mCameraDialog;
+    private Dialog mNewOrderDialog;
     //自动打印状态
     private Boolean auto_print_state = false;
 
@@ -237,12 +237,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     //初始化对话框
     private void init_dialog() {
-        mCameraDialog = new Dialog(this, R.style.my_dialog);
+        mNewOrderDialog = new Dialog(this, R.style.my_dialog);
         LinearLayout root = (LinearLayout) LayoutInflater.from(this).inflate(
                 R.layout.update_dialog, null);
         root.findViewById(R.id.bt_update_dialog).setOnClickListener(this);
-        mCameraDialog.setContentView(root);
-        Window dialogWindow = mCameraDialog.getWindow();
+        mNewOrderDialog.setContentView(root);
+        Window dialogWindow = mNewOrderDialog.getWindow();
         dialogWindow.setGravity(Gravity.BOTTOM);
         dialogWindow.setWindowAnimations(R.style.dialogstyle); // 添加动画
         WindowManager.LayoutParams lp = dialogWindow.getAttributes(); // 获取对话框当前的参数值
@@ -255,7 +255,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         lp.height = root.getMeasuredHeight();
         lp.alpha = 9f; // 透明度
         dialogWindow.setAttributes(lp);
-        //mCameraDialog.show();
+        //mNewOrderDialog.show();
     }
 
 
@@ -326,6 +326,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public void onResponse(Call call, Response response) throws IOException {
                 String json = response.body().string();
+
+                Log.d(TAG, "未处理订单: " + json);
 
                 //解析访问网络获取到的 json数据 ，打印出来
                 Order order = new Gson().fromJson(json, Order.class);
@@ -448,8 +450,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.bt_update_dialog: // 对话框点击事件:刷新列表
-                if (mCameraDialog != null) {
-                    mCameraDialog.dismiss();
+                if (mNewOrderDialog != null) {
+                    mNewOrderDialog.dismiss();
                 }
                 getUnHandleOrderList();
                 flag_list = UNHANDLELIST;
@@ -680,9 +682,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            if (!application.isPrintAuto() && mCameraDialog != null && !mCameraDialog.isShowing()) {
+                            if (!application.isPrintAuto() && mNewOrderDialog != null && !mNewOrderDialog.isShowing()) {
                                 //设置为不自动打印，显示新订单对话框
-                                mCameraDialog.show();
+                                mNewOrderDialog.show();
                             } else if (application.isPrintAuto() && isOrderPrinting == false) {
                                 //打印新订单
                                 //1、访问网络，获取新的订单
@@ -694,7 +696,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                 //打印第一条订单
 
                                 //标记网络，刷新订单列表
-
                             }
                         }
                     });

@@ -6,8 +6,8 @@ package com.dbstar.orderdispose.constant;
 public class URL {
 
     //后台IP地址
-//    public static final String IP = "http://192.168.0.205:8080";
-    public static final String IP = "http://192.168.0.254:8080";
+    public static final String IP = "http://192.168.0.205:8080";
+//    public static final String IP = "http://192.168.0.254:8080";
 //    public static final String IP = "http://116.231.55.196:9877";
 //    192.168.0.254
 
