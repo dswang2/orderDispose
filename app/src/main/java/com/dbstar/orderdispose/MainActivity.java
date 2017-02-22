@@ -302,11 +302,24 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             public void onResponse(Call call, Response response) throws IOException {
                 String json = response.body().string();
                 //订单详情数据 json
-                orderDetail = new Gson().fromJson(json, OrderDetail.class);
+                orderDetail = null;
+                try {
+                    orderDetail = new Gson().fromJson(json, OrderDetail.class);
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+
                 datasDetail.clear();
+
+                if(orderDetail==null){
+                    //刷新详情列表
+                    mHandler.sendEmptyMessage(4);
+                    return;
+                }
+
                 datasDetail.addAll(orderDetail.getData());
-                //刷新详情列表
                 mHandler.sendEmptyMessage(4);
+
                 //打印订单列表第一条
                 if (isPrintOnGet && application.isPrintAuto()) {
                     //设置为打印状态？
@@ -355,8 +368,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 Log.d(TAG, "未处理订单: " + json);
 
                 //解析访问网络获取到的 json数据 ，打印出来
-                Order order = new Gson().fromJson(json, Order.class);
+                Order order = null;
+                try {
+                    order = new Gson().fromJson(json, Order.class);
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
                 Log.d(TAG, "未处理订单: " + order);
+
+                if(order==null){
+                    return;
+                }
 
                 //通知主线程，刷新订单列表
                 datas.clear();
@@ -415,12 +437,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 String json = response.body().string();
 
                 //解析访问网络获取到的 json数据 ，打印出来
-                Order order = new Gson().fromJson(json, Order.class);
+                Order order = null;
+                try {
+                    order = new Gson().fromJson(json, Order.class);
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
                 Log.d(TAG, "未处理订单: " + order);
 
                 //通知主线程，刷新订单列表
                 datas.clear();
-                datas.addAll(order.getData());
+                if(order!=null){
+                    datas.addAll(order.getData());
+                }
                 mHandler.sendEmptyMessage(2);
 
                 //通知主线程，刷新详情列表，置空详情列表
