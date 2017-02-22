@@ -9,6 +9,7 @@ import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -44,11 +45,14 @@ import com.dbstar.orderdispose.bean.Order;
 import com.dbstar.orderdispose.bean.OrderDetail;
 import com.dbstar.orderdispose.constant.Constant;
 import com.dbstar.orderdispose.constant.URL;
+import com.dbstar.orderdispose.networkmanager.NetworkManager;
+import com.dbstar.orderdispose.networkmanager.NetworkObserver;
 import com.dbstar.orderdispose.printer.PrinterConnectDialog;
 import com.dbstar.orderdispose.service.AutoUpdateService;
 import com.dbstar.orderdispose.service.OnMessageListener;
 import com.dbstar.orderdispose.ui.SettingActivity;
 import com.dbstar.orderdispose.utils.HttpUtil;
+import com.dbstar.orderdispose.utils.ToastUtils;
 import com.google.gson.Gson;
 import com.gprinter.aidl.GpService;
 import com.gprinter.command.EscCommand;
@@ -77,7 +81,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private DrawerLayout mDrawerLayout;
 
     //对话框
-    private Dialog mCameraDialog;
+    private Dialog mNewOrderDialog;
     //自动打印状态
     private Boolean auto_print_state = false;
 
@@ -129,6 +133,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     //自动更新服务连接对象
     private ServiceConnection conn_update = new AutoUpdateServiceConnection();
+    private Button bt_update_dialog;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -201,6 +206,26 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         Intent intent = new Intent(this, AutoUpdateService.class);
         bindService(intent, conn_update, Context.BIND_AUTO_CREATE);
 
+        //网络监控
+        /*
+        NetworkManager.getInstance().initialized(this);
+        if(!NetworkManager.getInstance().isNetworkConnected()){
+            ToastUtils.showSafeToast(this,"无网络已连接");
+        }
+        NetworkManager.getInstance().registerNetworkObserver(new NetworkObserver() {
+            @Override
+            public void onNetworkStateChanged(boolean networkConnected, NetworkInfo currentNetwork, NetworkInfo lastNetwork) {
+                if(networkConnected && currentNetwork!=null) {
+                    //网络已连接
+
+                } else {
+                    //网络连接已断开
+                    bt_update_dialog.setText("网络连接断开");
+                    mNewOrderDialog.show();
+                }
+            }
+        });
+        */
     }
 
     @Override
@@ -237,12 +262,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     //初始化对话框
     private void init_dialog() {
-        mCameraDialog = new Dialog(this, R.style.my_dialog);
+        mNewOrderDialog = new Dialog(this, R.style.my_dialog);
         LinearLayout root = (LinearLayout) LayoutInflater.from(this).inflate(
                 R.layout.update_dialog, null);
-        root.findViewById(R.id.bt_update_dialog).setOnClickListener(this);
-        mCameraDialog.setContentView(root);
-        Window dialogWindow = mCameraDialog.getWindow();
+        bt_update_dialog = (Button) root.findViewById(R.id.bt_update_dialog);
+        bt_update_dialog.setOnClickListener(this);
+        mNewOrderDialog.setContentView(root);
+        Window dialogWindow = mNewOrderDialog.getWindow();
         dialogWindow.setGravity(Gravity.BOTTOM);
         dialogWindow.setWindowAnimations(R.style.dialogstyle); // 添加动画
         WindowManager.LayoutParams lp = dialogWindow.getAttributes(); // 获取对话框当前的参数值
@@ -255,7 +281,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         lp.height = root.getMeasuredHeight();
         lp.alpha = 9f; // 透明度
         dialogWindow.setAttributes(lp);
-        //mCameraDialog.show();
+        //mNewOrderDialog.show();
     }
 
 
@@ -276,11 +302,24 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             public void onResponse(Call call, Response response) throws IOException {
                 String json = response.body().string();
                 //订单详情数据 json
-                orderDetail = new Gson().fromJson(json, OrderDetail.class);
+                orderDetail = null;
+                try {
+                    orderDetail = new Gson().fromJson(json, OrderDetail.class);
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+
                 datasDetail.clear();
+
+                if(orderDetail==null){
+                    //刷新详情列表
+                    mHandler.sendEmptyMessage(4);
+                    return;
+                }
+
                 datasDetail.addAll(orderDetail.getData());
-                //刷新详情列表
                 mHandler.sendEmptyMessage(4);
+
                 //打印订单列表第一条
                 if (isPrintOnGet && application.isPrintAuto()) {
                     //设置为打印状态？
@@ -326,10 +365,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public void onResponse(Call call, Response response) throws IOException {
                 String json = response.body().string();
+                Log.d(TAG, "未处理订单: " + json);
 
                 //解析访问网络获取到的 json数据 ，打印出来
-                Order order = new Gson().fromJson(json, Order.class);
+                Order order = null;
+                try {
+                    order = new Gson().fromJson(json, Order.class);
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
                 Log.d(TAG, "未处理订单: " + order);
+
+                if(order==null){
+                    return;
+                }
 
                 //通知主线程，刷新订单列表
                 datas.clear();
@@ -370,7 +419,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     mHandler.sendEmptyMessage(4);
                 }
 
-
             }
 
             @Override
@@ -389,12 +437,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 String json = response.body().string();
 
                 //解析访问网络获取到的 json数据 ，打印出来
-                Order order = new Gson().fromJson(json, Order.class);
+                Order order = null;
+                try {
+                    order = new Gson().fromJson(json, Order.class);
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
                 Log.d(TAG, "未处理订单: " + order);
 
                 //通知主线程，刷新订单列表
                 datas.clear();
-                datas.addAll(order.getData());
+                if(order!=null){
+                    datas.addAll(order.getData());
+                }
                 mHandler.sendEmptyMessage(2);
 
                 //通知主线程，刷新详情列表，置空详情列表
@@ -448,8 +503,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.bt_update_dialog: // 对话框点击事件:刷新列表
-                if (mCameraDialog != null) {
-                    mCameraDialog.dismiss();
+                if (mNewOrderDialog != null) {
+                    mNewOrderDialog.dismiss();
                 }
                 getUnHandleOrderList();
                 flag_list = UNHANDLELIST;
@@ -675,26 +730,28 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             myService = ((AutoUpdateService.AutoUpdateServiceBinder) service).getService();
             myService.setOnMessageListener(new OnMessageListener() {
                 @Override
-                public void onUpdate(Boolean isUpdate) {
+                public void onUpdate(final Boolean isUpdate) {
                     Log.d("Service", "onUpdate");
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            if (!application.isPrintAuto() && mCameraDialog != null && !mCameraDialog.isShowing()) {
+                            if(!isUpdate){
+                                bt_update_dialog.setText("网络连接断开，请检查网络");
+                                mNewOrderDialog.show();
+                                return;
+                            }
+
+                            if (!application.isPrintAuto() && mNewOrderDialog != null && !mNewOrderDialog.isShowing()) {
                                 //设置为不自动打印，显示新订单对话框
-                                mCameraDialog.show();
+                                bt_update_dialog.setText("您有新订单，请及时处理");
+                                mNewOrderDialog.show();
                             } else if (application.isPrintAuto() && isOrderPrinting == false) {
                                 //打印新订单
                                 //1、访问网络，获取新的订单
                                 getUnHandleOrderList();
+                                    //获取新订单后，就判断是否打印新订单，是自动打印新订单，就打印
                                 flag_list = UNHANDLELIST;
                                 main_rb_unhandlelist.setChecked(true);
-
-                                //选择第一条订单填充详情列表
-                                //打印第一条订单
-
-                                //标记网络，刷新订单列表
-
                             }
                         }
                     });
