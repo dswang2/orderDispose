@@ -18,6 +18,7 @@ import android.util.Log;
 import com.dbstar.orderdispose.MyApplication;
 import com.dbstar.orderdispose.bean.Order;
 import com.dbstar.orderdispose.constant.URL;
+import com.dbstar.orderdispose.networkmanager.NetworkManager;
 import com.dbstar.orderdispose.utils.HttpUtil;
 import com.google.gson.Gson;
 
@@ -61,6 +62,7 @@ public class AutoUpdateService extends Service {
                 AssetManager assetManager = AutoUpdateService.this.getAssets();
                 AssetFileDescriptor fileDescriptor = null;
                 try {
+                    //新订单语音提示：提示音
                     fileDescriptor = assetManager.openFd("order.mp3");
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -69,10 +71,7 @@ public class AutoUpdateService extends Service {
 
                 try {
                     mediaPlayer.setDataSource(fileDescriptor.getFileDescriptor(),
-
-
                             fileDescriptor.getStartOffset(),
-
                             fileDescriptor.getLength());
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -114,8 +113,19 @@ public class AutoUpdateService extends Service {
 
     private void updateOrder() {
 
-        HttpUtil.sendOkHttpRequest(URL.NewOrder, new Callback() {
+        //定时访问网络如何？
+        NetworkManager.getInstance().initialized(this);
+        if(!NetworkManager.getInstance().isNetworkConnected()){
+            //无网络连接
+            //打开对话框
+            if(onMessageListener!=null){;
+                onMessageListener.onUpdate(false);
+            }
+            return;
+        }
 
+
+        HttpUtil.sendOkHttpRequest(URL.NewOrder, new Callback() {
             @Override
             public void onResponse(Call call, Response response) throws IOException {
                 String json = response.body().string();
@@ -137,9 +147,6 @@ public class AutoUpdateService extends Service {
                         onMessageListener.onUpdate(true);
                     }
                 }
-
-
-
             }
 
             @Override
