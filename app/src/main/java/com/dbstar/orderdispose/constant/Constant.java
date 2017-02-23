@@ -23,7 +23,15 @@ public class Constant {
     public static final String AUTO_PRINT = "auto_print";
     public static final String VOICE_ENABLE = "voice_enable";
     public static final String PRINT_COUNT = "print_count";
-//    public static final String AUTO_PRINT = "mSet_tb_print";
-//    public static final String VOICE_ENABLE = "set_tb_voice";
-//    public static final String PRINT_COUNT = "print_count";
+
+    //轮询服务消息类型
+    //网络状态正常
+    public static final int MSG_NET_OK = 0;
+    //网络状态错误
+    public static final int MSG_NET_ERR = 1;
+    //有新的订单产生
+    public static final int MSG_NEW_ORDER = 2;
+
+    //后台服务轮询新订单的时间间隔：10秒钟
+    public static final int CHECK_TIME = 1 * 1 * 10 * 1000;
 }
