@@ -17,6 +17,7 @@ import android.util.Log;
 
 import com.dbstar.orderdispose.MyApplication;
 import com.dbstar.orderdispose.bean.Order;
+import com.dbstar.orderdispose.constant.Constant;
 import com.dbstar.orderdispose.constant.URL;
 import com.dbstar.orderdispose.networkmanager.NetworkManager;
 import com.dbstar.orderdispose.utils.HttpUtil;
@@ -101,7 +102,7 @@ public class AutoUpdateService extends Service {
 
         //AlarmManager 轮询
         AlarmManager manager = (AlarmManager) getSystemService(ALARM_SERVICE);
-        int anHour = 1 * 1 * 10 * 1000; // 这是1分钟的毫秒数
+        int anHour = Constant.CHECK_TIME; // 轮询新订单的时间间隔
         long triggerAtTime = SystemClock.elapsedRealtime() + anHour;
         Intent i = new Intent(this, AutoUpdateService.class);
         PendingIntent pi = PendingIntent.getService(this, 0, i, 0);
@@ -119,9 +120,13 @@ public class AutoUpdateService extends Service {
             //无网络连接
             //打开对话框
             if(onMessageListener!=null){;
-                onMessageListener.onUpdate(false);
+                onMessageListener.onUpdate(Constant.MSG_NET_ERR);
             }
             return;
+        }else {
+            if(onMessageListener!=null){;
+                onMessageListener.onUpdate(Constant.MSG_NET_OK);
+            }
         }
 
 
@@ -144,7 +149,7 @@ public class AutoUpdateService extends Service {
                     }
                     //打开对话框
                     if(onMessageListener!=null){;
-                        onMessageListener.onUpdate(true);
+                        onMessageListener.onUpdate(Constant.MSG_NEW_ORDER);
                     }
                 }
             }

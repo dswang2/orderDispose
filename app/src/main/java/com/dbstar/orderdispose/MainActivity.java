@@ -9,7 +9,6 @@ import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -45,14 +44,11 @@ import com.dbstar.orderdispose.bean.Order;
 import com.dbstar.orderdispose.bean.OrderDetail;
 import com.dbstar.orderdispose.constant.Constant;
 import com.dbstar.orderdispose.constant.URL;
-import com.dbstar.orderdispose.networkmanager.NetworkManager;
-import com.dbstar.orderdispose.networkmanager.NetworkObserver;
 import com.dbstar.orderdispose.printer.PrinterConnectDialog;
 import com.dbstar.orderdispose.service.AutoUpdateService;
 import com.dbstar.orderdispose.service.OnMessageListener;
 import com.dbstar.orderdispose.ui.SettingActivity;
 import com.dbstar.orderdispose.utils.HttpUtil;
-import com.dbstar.orderdispose.utils.ToastUtils;
 import com.google.gson.Gson;
 import com.gprinter.aidl.GpService;
 import com.gprinter.command.EscCommand;
@@ -730,14 +726,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             myService = ((AutoUpdateService.AutoUpdateServiceBinder) service).getService();
             myService.setOnMessageListener(new OnMessageListener() {
                 @Override
-                public void onUpdate(final Boolean isUpdate) {
+                public void onUpdate(final int isUpdate) {
                     Log.d("Service", "onUpdate");
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            if(!isUpdate){
-                                bt_update_dialog.setText("网络连接断开，请检查网络");
-                                mNewOrderDialog.show();
+                            if(isUpdate==Constant.MSG_NET_ERR){
+                                if(mNewOrderDialog != null && !mNewOrderDialog.isShowing()){
+                                    bt_update_dialog.setText("网络连接断开，请检查网络");
+                                    mNewOrderDialog.show();
+                                }
+                                return;
+                            }
+                            if(isUpdate==Constant.MSG_NET_OK){
+                                if(mNewOrderDialog != null && mNewOrderDialog.isShowing()){
+                                    mNewOrderDialog.dismiss();
+                                }
                                 return;
                             }
 
