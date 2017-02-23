@@ -16,6 +16,7 @@ import android.support.annotation.Nullable;
 import android.util.Log;
 
 import com.dbstar.orderdispose.MyApplication;
+import com.dbstar.orderdispose.bean.FilmOrder;
 import com.dbstar.orderdispose.bean.Order;
 import com.dbstar.orderdispose.constant.Constant;
 import com.dbstar.orderdispose.constant.URL;
@@ -130,14 +131,23 @@ public class AutoUpdateService extends Service {
         }
 
 
-        HttpUtil.sendOkHttpRequest(URL.NewOrder, new Callback() {
+        HttpUtil.sendOkHttpRequest(URL.NewFilmOrder, new Callback() {
             @Override
             public void onResponse(Call call, Response response) throws IOException {
                 String json = response.body().string();
 
                 //解析访问网络获取到的 json数据 ，打印出来
-                final Order order = new Gson().fromJson(json, Order.class);
+                FilmOrder order = null;
+                try {
+                    order = new Gson().fromJson(json, FilmOrder.class);
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
                 Log.d(TAG, "onResponse: " + order);
+
+                if(order == null){
+                    return;
+                }
 
                 int preSize = application.getOrderListSize();
                 int nextSize = order.getData().size();

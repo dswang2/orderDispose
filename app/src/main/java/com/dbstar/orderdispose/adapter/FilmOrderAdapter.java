@@ -11,6 +11,7 @@ import android.widget.TextView;
 
 import com.dbstar.orderdispose.MainActivity;
 import com.dbstar.orderdispose.R;
+import com.dbstar.orderdispose.bean.FilmOrder;
 import com.dbstar.orderdispose.bean.Order;
 import com.dbstar.orderdispose.constant.URL;
 import com.dbstar.orderdispose.utils.HttpUtil;
@@ -26,7 +27,7 @@ import okhttp3.Response;
  * Created by dswang on 2016/12/25.
  */
 
-public class OrderAdapter extends RecyclerView.Adapter<OrderHolder>{
+public class FilmOrderAdapter extends RecyclerView.Adapter<FilmOrderAdapter.FilmOrderHolder>{
 
     private static final String TAG = "dsw_OrderAdapter";
     private final MainActivity mainActivity;
@@ -37,7 +38,7 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderHolder>{
         this.flag = flag;
     }
 
-    private List<Order.OrderBean> datas;
+    private List<FilmOrder.DataBean> datas;
     private int layoutPosition;
 
     private OnRecyclerViewItemClickListener mOnItemClickListener;
@@ -50,25 +51,26 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderHolder>{
     }
 
 
-    public OrderAdapter(MainActivity mainActivity,List<Order.OrderBean> datas) {
+    public FilmOrderAdapter(MainActivity mainActivity,List<FilmOrder.DataBean> datas) {
         this.mainActivity = mainActivity;
         this.datas = datas;
     }
 
     @Override
-    public OrderHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public FilmOrderHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View v= LayoutInflater.from(mainActivity).inflate(R.layout.order_item,parent,false);
-        return new OrderHolder(v);
+        return new FilmOrderHolder(v);
     }
 
     @Override
-    public void onBindViewHolder(final OrderHolder holder, int position) {
-        final Order.OrderBean order = datas.get(position);
-        holder.rvitem_tv_number.setText(order.getNumber());
-        holder.rvitem_tv_createdate.setText(order.getCreatedate());
-        holder.rvitem_tv_ordersNum.setText(order.getOrdersNum());
-        holder.rvitem_tv_roomId.setText(order.getRoomId());
-        holder.rvitem_tv_totalmoney.setText(order.getTotalmoney());
+    public void onBindViewHolder(final FilmOrderHolder holder, int position) {
+        final FilmOrder.DataBean order = datas.get(position);
+        holder.rvitem_tv_filmname.setText(order.getName());
+        holder.rvitem_tv_number.setText(order.getId());
+        holder.rvitem_tv_createdate.setText(order.getCreateTime());
+        holder.rvitem_tv_ordersNum.setText(order.getType());
+        holder.rvitem_tv_roomId.setText(order.getRoomid());
+        holder.rvitem_tv_totalmoney.setText(order.getMoney());
         //在用户没有点击任何 item 之前，所有item 均不设置背景颜色
         if(true == flag && position == layoutPosition){
             // flag = true 表示已经点击过订单列表，可以设置点击过的 Item 背景色
@@ -94,9 +96,9 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderHolder>{
                 //发送到MainActivity，刷新订单详情
                 Message msg = new Message();
                 Bundle detail = new Bundle();// 存放数据
-                detail.putString("orderTime",order.getCreatedate());
-                detail.putString("orderRoomId",order.getRoomId());
-                detail.putString("orderNumber",order.getNumber());
+                detail.putString("orderTime",order.getCreateTime());
+                detail.putString("orderRoomId",order.getRoomid());
+                detail.putString("orderNumber",order.getName());
                 msg.setData(detail);
                 msg.what = 3;
                 mainActivity.getHandler().sendMessage(msg);
@@ -114,22 +116,25 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderHolder>{
             return datas.size();
         }
     }
-}
 
-    class OrderHolder extends RecyclerView.ViewHolder{
-    public LinearLayout recycler_item;  //Recyclerview Item 的线性布局控件
-    public TextView rvitem_tv_number;   //订单编号
-    public TextView rvitem_tv_createdate;   //订单创建时间
-    public TextView rvitem_tv_ordersNum;    //订单中的 数量
-    public TextView rvitem_tv_roomId;   //房间号码
-    public TextView rvitem_tv_totalmoney;   //总价格
-    public OrderHolder(View itemView) {
-        super(itemView);
-        rvitem_tv_number = (TextView) itemView.findViewById(R.id.rvitem_tv_number);
-        recycler_item = (LinearLayout) itemView.findViewById(R.id.recycler_item);
-        rvitem_tv_createdate = (TextView) itemView.findViewById(R.id.rvitem_tv_createdate);
-        rvitem_tv_ordersNum = (TextView) itemView.findViewById(R.id.rvitem_tv_ordersNum);
-        rvitem_tv_roomId = (TextView) itemView.findViewById(R.id.rvitem_tv_roomId);
-        rvitem_tv_totalmoney = (TextView) itemView.findViewById(R.id.rvitem_tv_totalmoney);
+    class FilmOrderHolder extends RecyclerView.ViewHolder{
+        public LinearLayout recycler_item;  //Recyclerview Item 的线性布局控件
+        public TextView rvitem_tv_filmname; //节目名称
+        public TextView rvitem_tv_number;   //订单编号
+        public TextView rvitem_tv_createdate;   //订单创建时间
+        public TextView rvitem_tv_ordersNum;    //订单中的 数量
+        public TextView rvitem_tv_roomId;   //房间号码
+        public TextView rvitem_tv_totalmoney;   //总价格
+        public FilmOrderHolder(View itemView) {
+            super(itemView);
+            rvitem_tv_filmname = (TextView) itemView.findViewById(R.id.rvitem_tv_filmname);
+            rvitem_tv_number = (TextView) itemView.findViewById(R.id.rvitem_tv_number);
+            recycler_item = (LinearLayout) itemView.findViewById(R.id.recycler_item);
+            rvitem_tv_createdate = (TextView) itemView.findViewById(R.id.rvitem_tv_createdate);
+            rvitem_tv_ordersNum = (TextView) itemView.findViewById(R.id.rvitem_tv_ordersNum);
+            rvitem_tv_roomId = (TextView) itemView.findViewById(R.id.rvitem_tv_roomId);
+            rvitem_tv_totalmoney = (TextView) itemView.findViewById(R.id.rvitem_tv_totalmoney);
+        }
     }
 }
+

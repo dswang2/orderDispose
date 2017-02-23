@@ -39,7 +39,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.dbstar.orderdispose.adapter.DetailAdapter;
+import com.dbstar.orderdispose.adapter.FilmOrderAdapter;
 import com.dbstar.orderdispose.adapter.OrderAdapter;
+import com.dbstar.orderdispose.bean.FilmOrder;
 import com.dbstar.orderdispose.bean.Order;
 import com.dbstar.orderdispose.bean.OrderDetail;
 import com.dbstar.orderdispose.constant.Constant;
@@ -98,6 +100,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private OrderAdapter mMyAdapter;//订单列表adapter
     private SwipeRefreshLayout swipeRefreshLayout;//订单列表下拉刷新控件
     private RecyclerView mian_rv_detaillist;//订单详情列表recycle人view
+
+    //电影订单数据
+    List<FilmOrder.DataBean> filmDatas = new ArrayList<FilmOrder.DataBean>();
+    private FilmOrderAdapter mFilmOrderAdapter;
 
     //订单详情数据
     private List<OrderDetail.OrderDetailBean> datasDetail = new ArrayList<OrderDetail.OrderDetailBean>();
@@ -179,7 +185,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mMyAdapter = new OrderAdapter(this, datas);
         main_rv_orderlist = (RecyclerView) this.findViewById(R.id.main_rv_orderlist);
         main_rv_orderlist.setLayoutManager(new LinearLayoutManager(this));
-        main_rv_orderlist.setAdapter(mMyAdapter);
+        //main_rv_orderlist.setAdapter(mMyAdapter);
+
+        //电影订单列表数据填充
+        mFilmOrderAdapter = new FilmOrderAdapter(this,filmDatas);
+        main_rv_orderlist.setAdapter(mFilmOrderAdapter);
 
         //订单详情列表：detaillist填充数据
         detailAdapter = new DetailAdapter(this, datasDetail);
@@ -356,17 +366,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     //获取未处理订单列表
     public void getUnHandleOrderList() {
-        HttpUtil.sendOkHttpRequest(URL.NewOrder, new Callback() {
+        HttpUtil.sendOkHttpRequest(URL.NewFilmOrder, new Callback() {
 
             @Override
             public void onResponse(Call call, Response response) throws IOException {
                 String json = response.body().string();
-                Log.d(TAG, "未处理订单: " + json);
+                Log.d(TAG, "未处理节目订单列表: " + json);
 
                 //解析访问网络获取到的 json数据 ，打印出来
-                Order order = null;
+                FilmOrder order = null;
                 try {
-                    order = new Gson().fromJson(json, Order.class);
+                    order = new Gson().fromJson(json, FilmOrder.class);
                 }catch (Exception e){
                     e.printStackTrace();
                 }
@@ -377,11 +387,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
 
                 //通知主线程，刷新订单列表
-                datas.clear();
-                datas.addAll(order.getData());
+//                datas.clear();
+//                datas.addAll(order.getData());
+
+                filmDatas.clear();
+                filmDatas.addAll(order.getData());
 
                 //设置 全局最后一次访问网络获取的 订单数目
-                application.setOrderListSize(datas.size());
+//               application.setOrderListSize(datas.size());
+                application.setOrderListSize(filmDatas.size());
 
                 //再次确定类型
                 flag_list = UNHANDLELIST;
@@ -426,25 +440,25 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     //获取 历史订单列表
     public void getHistoryOrderList() {
-        HttpUtil.sendOkHttpRequest(URL.OldOrder, new Callback() {
+        HttpUtil.sendOkHttpRequest(URL.OldFilmOrder, new Callback() {
 
             @Override
             public void onResponse(Call call, Response response) throws IOException {
                 String json = response.body().string();
 
                 //解析访问网络获取到的 json数据 ，打印出来
-                Order order = null;
+                FilmOrder order = null;
                 try {
-                    order = new Gson().fromJson(json, Order.class);
+                    order = new Gson().fromJson(json, FilmOrder.class);
                 }catch (Exception e){
                     e.printStackTrace();
                 }
-                Log.d(TAG, "未处理订单: " + order);
+                Log.d(TAG, "历史订单: " + order);
 
                 //通知主线程，刷新订单列表
-                datas.clear();
+                filmDatas.clear();
                 if(order!=null){
-                    datas.addAll(order.getData());
+                    filmDatas.addAll(order.getData());
                 }
                 mHandler.sendEmptyMessage(2);
 
@@ -677,6 +691,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (conn != null) {
             unbindService(conn); // unBindService
         }
+        if (conn_update != null){
+            unbindService(conn_update);
+        }
         unregisterReceiver(mBroadcastReceiver);
     }
 
@@ -697,8 +714,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     if( flag_list == UNHANDLELIST){
                         main_rb_unhandlelist.setChecked(true);
                     }
-                    mMyAdapter.setFlag(false);
-                    mMyAdapter.notifyDataSetChanged();
+//                    mMyAdapter.setFlag(false);
+//                    mMyAdapter.notifyDataSetChanged();
+                    mFilmOrderAdapter.setFlag(false);
+                    mFilmOrderAdapter.notifyDataSetChanged();
                     break;
                 case 3:
                     //adapter中，选中订单列表 某订单，发送消息，访问网络，获取详情列表 javabean

@@ -11,6 +11,14 @@ public class URL {
 //    public static final String IP = "http://116.231.55.196:9877";
 //    192.168.0.254
 
+    //http://192.168.0.232:8080/bar/media/getMediaNewOrder.do
+    // 电影未处理订单
+    public static final String NewFilmOrder = IP + "/bar/media/getMediaNewOrder.do";
+    // 电影已处理订单
+    public static final String OldFilmOrder = IP + "/bar/media/getMediaOldOrder.do";
+    // 电影订单标记处理完成
+    public static final String FilmOrderMark = IP + "/bar/media/getMediaOldOrderStaus.do";
+
     //点餐已处理订单
     public static final String OldOrder = IP + "/bar/media/getOldOrder.do";
 
