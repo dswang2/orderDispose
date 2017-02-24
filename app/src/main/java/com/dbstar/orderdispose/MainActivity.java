@@ -393,7 +393,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             public void run() {
                 filmOrderDetail = filmOrder;
 
-                if (filmOrder != null) {
+                if (filmOrderDetail != null) {
                     main_tv_id.setText(filmOrderDetail.getId());
                     main_tv_roomid.setText(filmOrderDetail.getRoomid());
                     main_tv_type.setText(filmOrderDetail.getType());
@@ -546,6 +546,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 //循环中移除未处理订单列表的 orderNumber 订单
 
                 //处理订单之后，再进行查询，刷新一次列表
+                filmOrderDetail = null;
                 getUnHandleOrderList();
 
                 //刷新完 订单列表 ，刷新详情列表
