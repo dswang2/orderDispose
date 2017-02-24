@@ -40,6 +40,7 @@ import android.widget.Toast;
 
 import com.dbstar.orderdispose.adapter.DetailAdapter;
 import com.dbstar.orderdispose.adapter.OrderAdapter;
+import com.dbstar.orderdispose.adapter.WrapContentLinearLayoutManager;
 import com.dbstar.orderdispose.bean.Order;
 import com.dbstar.orderdispose.bean.OrderDetail;
 import com.dbstar.orderdispose.constant.Constant;
@@ -178,13 +179,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         //datas.add();
         mMyAdapter = new OrderAdapter(this, datas);
         main_rv_orderlist = (RecyclerView) this.findViewById(R.id.main_rv_orderlist);
-        main_rv_orderlist.setLayoutManager(new LinearLayoutManager(this));
+        main_rv_orderlist.setLayoutManager(new WrapContentLinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
         main_rv_orderlist.setAdapter(mMyAdapter);
 
         //订单详情列表：detaillist填充数据
         detailAdapter = new DetailAdapter(this, datasDetail);
         mian_rv_detaillist = (RecyclerView) this.findViewById(R.id.main_rv_detaillist);
-        mian_rv_detaillist.setLayoutManager(new LinearLayoutManager(this));
+        mian_rv_detaillist.setLayoutManager(new WrapContentLinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
         mian_rv_detaillist.setAdapter(detailAdapter);
         main_tv_detailcount = (TextView) findViewById(R.id.main_tv_detailcount);
         main_tv_detailmonney = (TextView) findViewById(R.id.main_tv_detailmonney);
