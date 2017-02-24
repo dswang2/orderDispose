@@ -41,6 +41,7 @@ import android.widget.Toast;
 import com.dbstar.orderdispose.adapter.DetailAdapter;
 import com.dbstar.orderdispose.adapter.FilmOrderAdapter;
 import com.dbstar.orderdispose.adapter.OrderAdapter;
+import com.dbstar.orderdispose.adapter.WrapContentLinearLayoutManager;
 import com.dbstar.orderdispose.bean.FilmOrder;
 import com.dbstar.orderdispose.bean.Order;
 import com.dbstar.orderdispose.bean.OrderDetail;
@@ -195,7 +196,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         //datas.add();
         mMyAdapter = new OrderAdapter(this, datas);
         main_rv_orderlist = (RecyclerView) this.findViewById(R.id.main_rv_orderlist);
-        main_rv_orderlist.setLayoutManager(new LinearLayoutManager(this));
+        main_rv_orderlist.setLayoutManager(new WrapContentLinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
         //main_rv_orderlist.setAdapter(mMyAdapter);
 
         //电影订单列表数据填充
@@ -335,6 +336,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         // 刷新详情列表
         refreshDetailList(filmOrder);
 
+        //打印订单列表第一条
+        if (isPrintOnGet && application.isPrintAuto()) {
+            //设置为打印状态？
+            isOrderPrinting = true;
+            //打印并标记datas_0
+            printOrderDetail();
+        }
 
 //        String urlOrderDetail = URL.OrderItem + "?" + URL.NUMBER + "=" + seqnumber;
 //        HttpUtil.sendOkHttpRequest(urlOrderDetail, new Callback() {
@@ -379,30 +387,29 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     //刷新详情列表
-    public void refreshDetailList(FilmOrder.DataBean filmOrder) {
+    public void refreshDetailList(final FilmOrder.DataBean filmOrder) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                filmOrderDetail = filmOrder;
 
-        filmOrderDetail = filmOrder;
-
-        if (filmOrder != null) {
-            main_tv_id.setText(filmOrderDetail.getId());
-            main_tv_roomid.setText(filmOrderDetail.getRoomid());
-            main_tv_type.setText(filmOrderDetail.getType());
-            main_tv_name.setText(filmOrderDetail.getName());
-            main_tv_createTime.setText(filmOrderDetail.getCreateTime());
-            main_tv_money.setText(filmOrderDetail.getMoney());;
-        }else{
-            main_tv_id.setText("");
-            main_tv_roomid.setText("");
-            main_tv_type.setText("");
-            main_tv_name.setText("");
-            main_tv_createTime.setText("");
-            main_tv_money.setText("");
-        }
-
-
-
-
-
+                if (filmOrder != null) {
+                    main_tv_id.setText(filmOrderDetail.getId());
+                    main_tv_roomid.setText(filmOrderDetail.getRoomid());
+                    main_tv_type.setText(filmOrderDetail.getType());
+                    main_tv_name.setText(filmOrderDetail.getName());
+                    main_tv_createTime.setText(filmOrderDetail.getCreateTime());
+                    main_tv_money.setText(filmOrderDetail.getMoney());;
+                }else{
+                    main_tv_id.setText("");
+                    main_tv_roomid.setText("");
+                    main_tv_type.setText("");
+                    main_tv_name.setText("");
+                    main_tv_createTime.setText("");
+                    main_tv_money.setText("");
+                }
+            }
+        });
 
     }
 
@@ -445,35 +452,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 flag_list = UNHANDLELIST;
                 mHandler.sendEmptyMessage(2);
 
-                //通知主线程，刷新详情列表，置空详情列表
-                mHandler.sendEmptyMessage(4);
+
 
 
                 //如果设置了自动打印，把第一条打印出来
-//                if (application.isPrintAuto()) {
-//                    Order.OrderBean datas_0 = null;
-//                    if (datas != null && !datas.isEmpty()) {
-//                        datas_0 = datas.get(0);
-//                        //根据订单号，访问网络，刷新详情列表
-//                    }
-//                    //无论什么情况，获取到订单列表，把第一条订单抓取出来，显示在详情列表中
-//                    if (datas_0 != null) {
-//                        String seqs =  datas_0.getNumber();
-//                        //访问订单详情并打印出来
-//                        //打印前给房间号、订单号赋值
-//                        orderNumber = seqs;
-//                        orderRoomId = datas_0.getRoomId();
-//                        orderTime = datas_0.getCreatedate();
-//                        getDetailList(seqs,true);
-//                    } else {
-//                        isOrderPrinting = false;
-//                    }
-//                }else {
-//                    //通知主线程，刷新详情列表，置空详情列表
-//                    orderDetail = null;
-//                    datasDetail.clear();
-//                    mHandler.sendEmptyMessage(4);
-//                }
+                if (application.isPrintAuto()) {
+
+
+                    if (filmDatas != null && !filmDatas.isEmpty()) {
+                        getDetailList(0,true);
+                        //根据订单号，访问网络，刷新详情列表
+                    }else{
+                        isOrderPrinting = false;
+                    }
+                }else {
+                    //通知主线程，刷新详情列表，置空详情列表
+                    mHandler.sendEmptyMessage(4);
+                }
 
             }
 
@@ -505,9 +500,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     if (order == null) {
                         return;
                     }
-                    if (order.getData().isEmpty() || order.getData().size() == 0) {
-                        return;
-                    }
+//                    if (order.getData().isEmpty() || order.getData().size() == 0) {
+//                        return;
+//                    }
 
                     filmDatas.clear();
                     //通知主线程，刷新订单列表
@@ -525,6 +520,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                 }
             });
+
+
         }catch (Exception e){
             e.printStackTrace();
         }finally {
@@ -591,7 +588,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 flag_list = HISTORYLIST;
                 break;
             case R.id.main_btn_ignore:
-                if (orderDetail == null) {
+                if (filmOrderDetail == null) {
                     break;
                 }
                 //如果目前是已处理订单，无需标记订单为已处理，直接退出
@@ -599,8 +596,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     break;
                 }
                 //访问后台，标记订单已处理
-                markOrderCompled(orderNumber);
-
+                markOrderCompled(filmOrderDetail.getId());
                 break;
             case R.id.main_btn_print:
                 Log.d(TAG, "onClick: main_btn_print.");
@@ -827,19 +823,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 case 4:
                     //刷新详情列表
                     //取得订单列表的第一条进行刷新
-                    if(filmDatas==null){
-                        refreshDetailList(null);
-                        return;
-                    }
-                    if (filmDatas.isEmpty() && filmDatas.size() == 0) {
-                        refreshDetailList(null);
-                        return;
-                    }
-                    if (filmDatas.get(0) == null) {
-                        refreshDetailList(null);
-                        return;
-                    }
-                    refreshDetailList(filmDatas.get(0));
+//                    if(filmDatas==null){
+//                        refreshDetailList(null);
+//                        return;
+//                    }
+//                    if (filmDatas.isEmpty() && filmDatas.size() == 0) {
+//                        refreshDetailList(null);
+//                        return;
+//                    }
+//                    if (filmDatas.get(0) == null) {
+//                        refreshDetailList(null);
+//                        return;
+//                    }
+                    refreshDetailList(null);
                     break;
                 default:
                     break;
