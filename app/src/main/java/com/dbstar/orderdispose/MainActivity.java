@@ -66,6 +66,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
+import java.util.concurrent.ExecutionException;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -116,6 +117,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private String orderTime;
     private String orderRoomId;
     private String orderNumber;
+    private int filmDatasIndex;
+
+    private TextView main_tv_id;
+    private TextView main_tv_roomid;
+    private TextView main_tv_type;
+    private TextView main_tv_name;
+    private TextView main_tv_createTime;
+    private TextView main_tv_money;
+
 
     //打印订单
     private PrinterServiceConnection conn = null;
@@ -136,6 +146,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     //自动更新服务连接对象
     private ServiceConnection conn_update = new AutoUpdateServiceConnection();
     private Button bt_update_dialog;
+    private FilmOrder.DataBean filmOrderDetail;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -188,7 +199,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         //main_rv_orderlist.setAdapter(mMyAdapter);
 
         //电影订单列表数据填充
-        mFilmOrderAdapter = new FilmOrderAdapter(this,filmDatas);
+        mFilmOrderAdapter = new FilmOrderAdapter(this, filmDatas);
         main_rv_orderlist.setAdapter(mFilmOrderAdapter);
 
         //订单详情列表：detaillist填充数据
@@ -202,6 +213,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         main_btn_print.setOnClickListener(this);
         main_btn_ignore = (Button) findViewById(R.id.main_btn_ignore);
         main_btn_ignore.setOnClickListener(this);
+
+        main_tv_id = (TextView) findViewById(R.id.main_tv_id);
+        main_tv_roomid = (TextView) findViewById(R.id.main_tv_roomid);
+        main_tv_type = (TextView) findViewById(R.id.main_tv_type);
+        main_tv_name = (TextView) findViewById(R.id.main_tv_name);
+        main_tv_createTime = (TextView) findViewById(R.id.main_tv_createTime);
+        main_tv_money = (TextView) findViewById(R.id.main_tv_money);
+
         //下拉刷新控件注册
         swipeRefreshLayout = (SwipeRefreshLayout) this.findViewById(R.id.swipeLayout);
         swipeRefreshLayout.setSize(SwipeRefreshLayout.LARGE);
@@ -299,67 +318,91 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
     //根据订单号，获取详情数据
-    public void getDetailList(String seqnumber,final Boolean isPrintOnGet) {
+    public void getDetailList(int filmDatasIndex, final Boolean isPrintOnGet) {
 
-        String urlOrderDetail = URL.OrderItem + "?" + URL.NUMBER + "=" + seqnumber;
-        HttpUtil.sendOkHttpRequest(urlOrderDetail, new Callback() {
+        //不需要访问网络，直接填充详情区域
+        //怎么填充？跟小票打印机一致
+        // seqnumber
+        FilmOrder.DataBean filmOrder = null;
+        if (filmDatas != null && !filmDatas.isEmpty()) {
+            filmOrder = filmDatas.get(filmDatasIndex);
+        } else {
+            return;
+        }
 
-            @Override
-            public void onResponse(Call call, Response response) throws IOException {
-                String json = response.body().string();
-                //订单详情数据 json
-                orderDetail = null;
-                try {
-                    orderDetail = new Gson().fromJson(json, OrderDetail.class);
-                }catch (Exception e){
-                    e.printStackTrace();
-                }
+        Log.d(TAG, "订单详情信息: " + filmOrder.toString());
 
-                datasDetail.clear();
+        // 刷新详情列表
+        refreshDetailList(filmOrder);
 
-                if(orderDetail==null){
-                    //刷新详情列表
-                    mHandler.sendEmptyMessage(4);
-                    return;
-                }
 
-                datasDetail.addAll(orderDetail.getData());
-                mHandler.sendEmptyMessage(4);
-
-                //打印订单列表第一条
-                if (isPrintOnGet && application.isPrintAuto()) {
-                    //设置为打印状态？
-                    isOrderPrinting = true;
-                    //打印并标记datas_0
-                    printOrderDetail();
-                }
-            }
-
-            @Override
-            public void onFailure(Call call, IOException e) {
-
-            }
-        });
+//        String urlOrderDetail = URL.OrderItem + "?" + URL.NUMBER + "=" + seqnumber;
+//        HttpUtil.sendOkHttpRequest(urlOrderDetail, new Callback() {
+//
+//            @Override
+//            public void onResponse(Call call, Response response) throws IOException {
+//                String json = response.body().string();
+//                //订单详情数据 json
+//                orderDetail = null;
+//                try {
+//                    orderDetail = new Gson().fromJson(json, OrderDetail.class);
+//                }catch (Exception e){
+//                    e.printStackTrace();
+//                }
+//
+//                datasDetail.clear();
+//
+//                if(orderDetail==null){
+//                    //刷新详情列表
+//                    mHandler.sendEmptyMessage(4);
+//                    return;
+//                }
+//
+//                datasDetail.addAll(orderDetail.getData());
+//                mHandler.sendEmptyMessage(4);
+//
+//                //打印订单列表第一条
+//                if (isPrintOnGet && application.isPrintAuto()) {
+//                    //设置为打印状态？
+//                    isOrderPrinting = true;
+//                    //打印并标记datas_0
+//                    printOrderDetail();
+//                }
+//            }
+//
+//            @Override
+//            public void onFailure(Call call, IOException e) {
+//
+//            }
+//        });
 
     }
 
     //刷新详情列表
-    public void refreshDetailList() {
-        detailAdapter.notifyDataSetChanged();
-        // notifyDataSetChanged() 是异步方法？小计会不会优先于详情列表刷新出来？
-        if (orderDetail != null) {
-            main_tv_detailcount.setText("" + orderDetail.getTotalCount());//总数量
-            main_tv_detailmonney.setText("" + orderDetail.getTotalMoney());//总金额
-            //设置电话号码
-            if (Constant.ORDER_TYPE_SHOPING.equals(orderDetail.getOrderType())) {
-                //
-            } else if (Constant.ORDER_TYPE_MEAL.equals(orderDetail.getOrderType())) {
-                //
-            }
-        } else {
-            main_tv_detailcount.setText("0");//总数量
-            main_tv_detailmonney.setText("0");//总金额
+    public void refreshDetailList(FilmOrder.DataBean filmOrder) {
+
+        filmOrderDetail = filmOrder;
+
+        if (filmOrder != null) {
+            main_tv_id.setText(filmOrderDetail.getId());
+            main_tv_roomid.setText(filmOrderDetail.getRoomid());
+            main_tv_type.setText(filmOrderDetail.getType());
+            main_tv_name.setText(filmOrderDetail.getName());
+            main_tv_createTime.setText(filmOrderDetail.getCreateTime());
+            main_tv_money.setText(filmOrderDetail.getMoney());;
+        }else{
+            main_tv_id.setText("");
+            main_tv_roomid.setText("");
+            main_tv_type.setText("");
+            main_tv_name.setText("");
+            main_tv_createTime.setText("");
+            main_tv_money.setText("");
         }
+
+
+
+
+
 
     }
 
@@ -377,14 +420,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 FilmOrder order = null;
                 try {
                     order = new Gson().fromJson(json, FilmOrder.class);
-                }catch (Exception e){
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
                 Log.d(TAG, "未处理订单: " + order);
 
-                if(order==null){
+                if (order == null) {
                     return;
                 }
+
 
                 //通知主线程，刷新订单列表
 //                datas.clear();
@@ -401,33 +445,35 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 flag_list = UNHANDLELIST;
                 mHandler.sendEmptyMessage(2);
 
+                //通知主线程，刷新详情列表，置空详情列表
+                mHandler.sendEmptyMessage(4);
 
 
                 //如果设置了自动打印，把第一条打印出来
-                if (application.isPrintAuto()) {
-                    Order.OrderBean datas_0 = null;
-                    if (datas != null && !datas.isEmpty()) {
-                        datas_0 = datas.get(0);
-                        //根据订单号，访问网络，刷新详情列表
-                    }
-                    //无论什么情况，获取到订单列表，把第一条订单抓取出来，显示在详情列表中
-                    if (datas_0 != null) {
-                        String seqs =  datas_0.getNumber();
-                        //访问订单详情并打印出来
-                        //打印前给房间号、订单号赋值
-                        orderNumber = seqs;
-                        orderRoomId = datas_0.getRoomId();
-                        orderTime = datas_0.getCreatedate();
-                        getDetailList(seqs,true);
-                    } else {
-                        isOrderPrinting = false;
-                    }
-                }else {
-                    //通知主线程，刷新详情列表，置空详情列表
-                    orderDetail = null;
-                    datasDetail.clear();
-                    mHandler.sendEmptyMessage(4);
-                }
+//                if (application.isPrintAuto()) {
+//                    Order.OrderBean datas_0 = null;
+//                    if (datas != null && !datas.isEmpty()) {
+//                        datas_0 = datas.get(0);
+//                        //根据订单号，访问网络，刷新详情列表
+//                    }
+//                    //无论什么情况，获取到订单列表，把第一条订单抓取出来，显示在详情列表中
+//                    if (datas_0 != null) {
+//                        String seqs =  datas_0.getNumber();
+//                        //访问订单详情并打印出来
+//                        //打印前给房间号、订单号赋值
+//                        orderNumber = seqs;
+//                        orderRoomId = datas_0.getRoomId();
+//                        orderTime = datas_0.getCreatedate();
+//                        getDetailList(seqs,true);
+//                    } else {
+//                        isOrderPrinting = false;
+//                    }
+//                }else {
+//                    //通知主线程，刷新详情列表，置空详情列表
+//                    orderDetail = null;
+//                    datasDetail.clear();
+//                    mHandler.sendEmptyMessage(4);
+//                }
 
             }
 
@@ -440,39 +486,54 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     //获取 历史订单列表
     public void getHistoryOrderList() {
-        HttpUtil.sendOkHttpRequest(URL.OldFilmOrder, new Callback() {
+        try {
+            HttpUtil.sendOkHttpRequest(URL.OldFilmOrder, new Callback() {
 
-            @Override
-            public void onResponse(Call call, Response response) throws IOException {
-                String json = response.body().string();
+                @Override
+                public void onResponse(Call call, Response response) throws IOException {
+                    String json = response.body().string();
 
-                //解析访问网络获取到的 json数据 ，打印出来
-                FilmOrder order = null;
-                try {
-                    order = new Gson().fromJson(json, FilmOrder.class);
-                }catch (Exception e){
-                    e.printStackTrace();
-                }
-                Log.d(TAG, "历史订单: " + order);
+                    //解析访问网络获取到的 json数据 ，打印出来
+                    FilmOrder order = null;
+                    try {
+                        order = new Gson().fromJson(json, FilmOrder.class);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    Log.d(TAG, "历史订单: " + order);
 
-                //通知主线程，刷新订单列表
-                filmDatas.clear();
-                if(order!=null){
+                    if (order == null) {
+                        return;
+                    }
+                    if (order.getData().isEmpty() || order.getData().size() == 0) {
+                        return;
+                    }
+
+                    filmDatas.clear();
+                    //通知主线程，刷新订单列表
                     filmDatas.addAll(order.getData());
+
+                    flag_list = HISTORYLIST;
+                    mHandler.sendEmptyMessage(2);
+
+                    //通知主线程，刷新详情列表，置空详情列表
+                    mHandler.sendEmptyMessage(4);
                 }
-                mHandler.sendEmptyMessage(2);
 
-                //通知主线程，刷新详情列表，置空详情列表
-                orderDetail = null;
-                datasDetail.clear();
-                mHandler.sendEmptyMessage(4);
-            }
+                @Override
+                public void onFailure(Call call, IOException e) {
 
-            @Override
-            public void onFailure(Call call, IOException e) {
+                }
+            });
+        }catch (Exception e){
+            e.printStackTrace();
+        }finally {
+            flag_list = HISTORYLIST;
+            mHandler.sendEmptyMessage(2);
 
-            }
-        });
+            //通知主线程，刷新详情列表，置空详情列表
+            mHandler.sendEmptyMessage(4);
+        }
     }
 
     /**
@@ -481,7 +542,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
      * @param seqnumber ,订单编号
      */
     public void markOrderCompled(String seqnumber) {
-        String markUrk = URL.OrderMark + "?" + URL.OrderMarkID + "=" + seqnumber + "&" + URL.OrderMarkFLAG;
+        String markUrk = URL.FilmOrderMark + "?" + URL.OrderMarkID + "=" + seqnumber;
         HttpUtil.sendOkHttpRequest(markUrk, new Callback() {
             @Override
             public void onResponse(Call call, Response response) throws IOException {
@@ -495,9 +556,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 //清空、刷新详情列表
                 //设置详情页javabean 为空
 
-                orderDetail = null;
-                datasDetail.clear();
-                mHandler.sendEmptyMessage(4);
+//                orderDetail = null;
+//                datasDetail.clear();
+//                mHandler.sendEmptyMessage(4);
 
             }
 
@@ -550,9 +611,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
+
     //打印订单详情
     public void printOrderDetail() {
-        if (orderDetail == null || mGpService == null) {
+        if (filmOrderDetail == null || mGpService == null) {
             return;
         }
         //打印小票
@@ -574,7 +636,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             return;
         }
         //访问后台，标记订单已处理
-        markOrderCompled(orderNumber);
+        markOrderCompled(filmOrderDetail.getId());
     }
 
     //打印小票
@@ -590,56 +652,90 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         esc.addInitializePrinter();
         esc.addPrintAndFeedLines((byte) 1);
 //        esc.addText("一二三四五六七八九十一二三四五六\n");
-//        esc.addSelectJustification(EscCommand.JUSTIFICATION.CENTER);// 设 置 打 印 居 中
+
+        esc.addSelectJustification(EscCommand.JUSTIFICATION.CENTER);// 设 置 打 印 居 中
+        esc.addSelectPrintModes(EscCommand.FONT.FONTB, EscCommand.ENABLE.OFF, EscCommand.ENABLE.ON, EscCommand.ENABLE.OFF, EscCommand.ENABLE.OFF);// 设 置 为 加粗、倍高、倍宽、无下划线
+//        esc.addSelectPrintModes();
+        esc.addSetKanjiLefttandRightSpace((byte)1,(byte)1);
 //        esc.addSelectPrintModes(EscCommand.FONT.FONTA, EscCommand.ENABLE.OFF, EscCommand.ENABLE.ON, EscCommand.ENABLE.ON, EscCommand.ENABLE.OFF);// 设 置 为 倍 高 倍 宽
-        esc.addText("房间：" + orderRoomId + "\n");// 打 印 文 字
+        esc.addText("广州华威达酒店\n收费电视点播单账单\nPAY TV BILL");// 打 印 文 字
         //进纸一行
-//        esc.addPrintAndLineFeed();
+        esc.addPrintAndLineFeed();
 
         /* 打 印 文 字 */
-        esc.addSelectPrintModes(EscCommand.FONT.FONTA, EscCommand.ENABLE.OFF, EscCommand.ENABLE.OFF, EscCommand.ENABLE.OFF, EscCommand.ENABLE.OFF);// 取 消 倍 高 倍 宽
+//        esc.addSelectPrintModes(EscCommand.FONT.FONTA, EscCommand.ENABLE.OFF, EscCommand.ENABLE.OFF, EscCommand.ENABLE.OFF, EscCommand.ENABLE.OFF);// 取 消 倍 高 倍 宽
+        esc.addSelectPrintModes(EscCommand.FONT.FONTB, EscCommand.ENABLE.OFF, EscCommand.ENABLE.OFF, EscCommand.ENABLE.OFF, EscCommand.ENABLE.OFF);// 设 置 为 加粗、倍高、倍宽、无下划线
         esc.addSelectJustification(EscCommand.JUSTIFICATION.LEFT);// 设 置 打 印 左 对 齐
-        esc.addText("订单号：" + orderNumber + "\n");// 打 印 文 字
-//        esc.addText(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date())+"\n");// 打 印 文 字
+        esc.addText("酒店联\n");// 打 印 文 字
+        esc.addSelectJustification(EscCommand.JUSTIFICATION.LEFT);// 设 置 打 印 左 对 齐
+        esc.addText("点播流水号：" + filmOrderDetail.getId() + "\n");// 打 印 文 字
+        esc.addSelectJustification(EscCommand.JUSTIFICATION.LEFT);// 设 置 打 印 左 对 齐
+        esc.addText("(Order No)\n");// 打 印 文 字
 
-        esc.addPrintAndLineFeed();
-        esc.addSelectJustification(EscCommand.JUSTIFICATION.LEFT);
-        esc.addText("名称");
-        esc.addSetHorAndVerMotionUnits((byte) 6, (byte) 0);
-        esc.addSetAbsolutePrintPosition((short) 6);
-        esc.addText("单价");
-        //可能的效果是，“数量”往后移动了一个单位——也就是“数量”这两个字符的占位
-        esc.addSetRelativePrintPositon((short) 1);
-        esc.addText("数量");
-        esc.addText("\n---------------------------\n");
+        esc.addSelectJustification(EscCommand.JUSTIFICATION.LEFT);// 设 置 打 印 左 对 齐
+        esc.addText("房间号：" + filmOrderDetail.getRoomid() + "\n");// 打 印 文 字
+        esc.addSelectJustification(EscCommand.JUSTIFICATION.LEFT);// 设 置 打 印 左 对 齐
+        esc.addText("(Room No)\n");// 打 印 文 字
 
+        esc.addSelectJustification(EscCommand.JUSTIFICATION.LEFT);// 设 置 打 印 左 对 齐
+        esc.addText("收费方式：" + filmOrderDetail.getType() + "\n");// 打 印 文 字
+        esc.addSelectJustification(EscCommand.JUSTIFICATION.LEFT);// 设 置 打 印 左 对 齐
+        esc.addText("(Charging Methods)\n");// 打 印 文 字
 
-        for (OrderDetail.OrderDetailBean bean : datasDetail) {
-            esc.addSelectJustification(EscCommand.JUSTIFICATION.LEFT);
-            esc.addText(bean.getGoodsName());
-            esc.addSetHorAndVerMotionUnits((byte) 6, (byte) 0);
-            esc.addSetAbsolutePrintPosition((short) 6);
-            esc.addText(bean.getPrice() + " 元");
-            //可能的效果是，“数量”往后移动了一个单位——也就是“数量”这两个字符的占位
-            esc.addSetRelativePrintPositon((short) 1);
-            esc.addText(bean.getBuynum() + " 份");
-            esc.addText("\n");
-        }
+        esc.addSelectJustification(EscCommand.JUSTIFICATION.LEFT);// 设 置 打 印 左 对 齐
+        esc.addText("节目名称：" + filmOrderDetail.getName() + "\n");// 打 印 文 字
+        esc.addSelectJustification(EscCommand.JUSTIFICATION.LEFT);// 设 置 打 印 左 对 齐
+        esc.addText("(Movie Name)\n");// 打 印 文 字
 
-        esc.addText("\n---------------------------\n");
-        esc.addPrintAndLineFeed();
-        esc.addText("小计：" + orderDetail.getTotalMoney() + " 元\n");
-        esc.addPrintAndLineFeed();
-        esc.addText("时间：" + orderTime + "\n");
-        esc.addPrintAndLineFeed();
-        if (Constant.ORDER_TYPE_SHOPING.equals(orderDetail.getOrderType())) {
-            esc.addText("购物电话：" + Constant.PHONE_NUMBER_SHOPING + "\n");
-        } else if (Constant.ORDER_TYPE_MEAL.equals(orderDetail.getOrderType())) {
-            esc.addText("订餐电话：" + Constant.PHONE_NUMBER_MEAL + "\n");
-        }
+        esc.addSelectJustification(EscCommand.JUSTIFICATION.LEFT);// 设 置 打 印 左 对 齐
+        esc.addText("点播时间：" + filmOrderDetail.getCreateTime() + "\n");// 打 印 文 字
+        esc.addSelectJustification(EscCommand.JUSTIFICATION.LEFT);// 设 置 打 印 左 对 齐
+        esc.addText("(Order Time)\n");// 打 印 文 字
 
-        esc.addPrintAndLineFeed();
-        esc.addText("客户签名：\n");
+        esc.addSelectJustification(EscCommand.JUSTIFICATION.LEFT);// 设 置 打 印 左 对 齐
+        esc.addText("收费金额：" + filmOrderDetail.getMoney() + "\n");// 打 印 文 字
+        esc.addSelectJustification(EscCommand.JUSTIFICATION.LEFT);// 设 置 打 印 左 对 齐
+        esc.addText("(Service Cost)\n");// 打 印 文 字
+////        esc.addText(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date())+"\n");// 打 印 文 字
+//
+//        esc.addPrintAndLineFeed();
+//        esc.addSelectJustification(EscCommand.JUSTIFICATION.LEFT);
+//        esc.addText("名称");
+//        esc.addSetHorAndVerMotionUnits((byte) 6, (byte) 0);
+//        esc.addSetAbsolutePrintPosition((short) 6);
+//        esc.addText("单价");
+//        //可能的效果是，“数量”往后移动了一个单位——也就是“数量”这两个字符的占位
+//        esc.addSetRelativePrintPositon((short) 1);
+//        esc.addText("数量");
+//        esc.addText("\n---------------------------\n");
+//
+//
+//        for (OrderDetail.OrderDetailBean bean : datasDetail) {
+//            esc.addSelectJustification(EscCommand.JUSTIFICATION.LEFT);
+//            esc.addText(bean.getGoodsName());
+//            esc.addSetHorAndVerMotionUnits((byte) 6, (byte) 0);
+//            esc.addSetAbsolutePrintPosition((short) 6);
+//            esc.addText(bean.getPrice() + " 元");
+//            //可能的效果是，“数量”往后移动了一个单位——也就是“数量”这两个字符的占位
+//            esc.addSetRelativePrintPositon((short) 1);
+//            esc.addText(bean.getBuynum() + " 份");
+//            esc.addText("\n");
+//        }
+//
+//        esc.addText("\n---------------------------\n");
+//        esc.addPrintAndLineFeed();
+//        esc.addText("小计：" + orderDetail.getTotalMoney() + " 元\n");
+//        esc.addPrintAndLineFeed();
+//        esc.addText("时间：" + orderTime + "\n");
+//        esc.addPrintAndLineFeed();
+//        if (Constant.ORDER_TYPE_SHOPING.equals(orderDetail.getOrderType())) {
+//            esc.addText("购物电话：" + Constant.PHONE_NUMBER_SHOPING + "\n");
+//        } else if (Constant.ORDER_TYPE_MEAL.equals(orderDetail.getOrderType())) {
+//            esc.addText("订餐电话：" + Constant.PHONE_NUMBER_MEAL + "\n");
+//        }
+//
+//        esc.addPrintAndLineFeed();
+//        esc.addText("客户签名：\n");
 
 
         // 开 钱 箱
@@ -691,7 +787,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (conn != null) {
             unbindService(conn); // unBindService
         }
-        if (conn_update != null){
+        if (conn_update != null) {
             unbindService(conn_update);
         }
         unregisterReceiver(mBroadcastReceiver);
@@ -711,7 +807,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     break;
                 case 2:
                     //点击 radio button ,刷新 订单列表
-                    if( flag_list == UNHANDLELIST){
+                    if (flag_list == UNHANDLELIST) {
                         main_rb_unhandlelist.setChecked(true);
                     }
 //                    mMyAdapter.setFlag(false);
@@ -725,11 +821,25 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     orderTime = bundle.getString("orderTime");
                     orderRoomId = bundle.getString("orderRoomId");
                     orderNumber = bundle.getString("orderNumber");
-                    getDetailList(orderNumber,false);
+                    filmDatasIndex = bundle.getInt("filmDatasIndex");
+                    getDetailList(filmDatasIndex, false);
                     break;
                 case 4:
                     //刷新详情列表
-                    refreshDetailList();
+                    //取得订单列表的第一条进行刷新
+                    if(filmDatas==null){
+                        refreshDetailList(null);
+                        return;
+                    }
+                    if (filmDatas.isEmpty() && filmDatas.size() == 0) {
+                        refreshDetailList(null);
+                        return;
+                    }
+                    if (filmDatas.get(0) == null) {
+                        refreshDetailList(null);
+                        return;
+                    }
+                    refreshDetailList(filmDatas.get(0));
                     break;
                 default:
                     break;
@@ -750,15 +860,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            if(isUpdate==Constant.MSG_NET_ERR){
-                                if(mNewOrderDialog != null && !mNewOrderDialog.isShowing()){
+                            if (isUpdate == Constant.MSG_NET_ERR) {
+                                if (mNewOrderDialog != null && !mNewOrderDialog.isShowing()) {
                                     bt_update_dialog.setText("网络连接断开，请检查网络");
                                     mNewOrderDialog.show();
                                 }
                                 return;
                             }
-                            if(isUpdate==Constant.MSG_NET_OK){
-                                if(mNewOrderDialog != null && mNewOrderDialog.isShowing()){
+                            if (isUpdate == Constant.MSG_NET_OK) {
+                                if (mNewOrderDialog != null && mNewOrderDialog.isShowing()) {
                                     mNewOrderDialog.dismiss();
                                 }
                                 return;
@@ -772,7 +882,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                 //打印新订单
                                 //1、访问网络，获取新的订单
                                 getUnHandleOrderList();
-                                    //获取新订单后，就判断是否打印新订单，是自动打印新订单，就打印
+                                //获取新订单后，就判断是否打印新订单，是自动打印新订单，就打印
                                 flag_list = UNHANDLELIST;
                                 main_rb_unhandlelist.setChecked(true);
                             }

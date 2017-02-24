@@ -63,8 +63,11 @@ public class FilmOrderAdapter extends RecyclerView.Adapter<FilmOrderAdapter.Film
     }
 
     @Override
-    public void onBindViewHolder(final FilmOrderHolder holder, int position) {
+    public void onBindViewHolder(final FilmOrderHolder holder, final int position) {
         final FilmOrder.DataBean order = datas.get(position);
+        if(order==null){
+            return;
+        }
         holder.rvitem_tv_filmname.setText(order.getName());
         holder.rvitem_tv_number.setText(order.getId());
         holder.rvitem_tv_createdate.setText(order.getCreateTime());
@@ -86,16 +89,17 @@ public class FilmOrderAdapter extends RecyclerView.Adapter<FilmOrderAdapter.Film
                 flag = true;
                 //获取当前点击的位置
                 layoutPosition = holder.getLayoutPosition();
-                //刷新Recyclerview,改变被点击位置的北京颜色
+                //刷新Recyclerview,改变被点击位置的背景颜色
                 notifyDataSetChanged();
-                //访问网络 查询 历史订单，更新订单列表
 
+                //访问网络 查询 历史订单，更新订单列表
                 /**
                  * 发送 订单号 到 MainActivity，在MainActivity中拼接地址，访问网络并更新详情列表
                  */
                 //发送到MainActivity，刷新订单详情
                 Message msg = new Message();
                 Bundle detail = new Bundle();// 存放数据
+                detail.putInt("filmDatasIndex",position);
                 detail.putString("orderTime",order.getCreateTime());
                 detail.putString("orderRoomId",order.getRoomid());
                 detail.putString("orderNumber",order.getName());

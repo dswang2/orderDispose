@@ -134,6 +134,12 @@ public class FilmOrder {
         public void setStatus(String status) {
             this.status = status;
         }
+
+        @Override
+        public String toString() {
+            return new Gson().toJson(this);
+        }
+
     }
 
     @Override

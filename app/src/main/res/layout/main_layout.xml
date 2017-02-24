@@ -7,11 +7,12 @@
     android:orientation="horizontal"
     app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
+    <!--未处理和已处理订单列表-->
     <LinearLayout
         android:layout_width="1006px"
         android:layout_height="575px"
         android:layout_marginLeft="10px"
-        android:layout_marginRight="10px"
+        android:layout_marginRight="5px"
         android:layout_marginTop="25px"
         android:background="@drawable/bg_order">
 
@@ -51,26 +52,6 @@
 
             </RadioGroup>
 
-            <!--
-            <Button
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_margin="10px"
-                android:layout_weight="1"
-                android:background="#55015E89"
-                android:gravity="center"
-                android:text="未处理\n订单" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_margin="10px"
-                android:layout_weight="1"
-                android:background="#55015E89"
-                android:gravity="center"
-                android:text="历史订单\n查询" />
-                -->
-
         </LinearLayout>
 
         <android.support.v4.widget.SwipeRefreshLayout
@@ -87,13 +68,239 @@
         </android.support.v4.widget.SwipeRefreshLayout>
     </LinearLayout>
 
+    <!--订单详情展示-->
+    <LinearLayout
+        android:layout_width="332px"
+        android:layout_height="575px"
+        android:layout_marginLeft="5px"
+        android:layout_marginRight="10px"
+        android:layout_marginTop="25px"
+        android:background="@drawable/bg_order"
+        android:orientation="vertical"
+        android:paddingRight="10px"
+        android:visibility="visible">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dip"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:gravity="center_horizontal"
+                android:paddingBottom="10px"
+                android:paddingTop="20px"
+                android:text="广州华威达酒店\n收费电视点播单账单\nPAY TV BILL"
+                android:textSize="25px" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingLeft="10px"
+                android:text="酒店联" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:paddingLeft="10px"
+                    android:text="点播流水号：" />
+
+                <TextView
+                    android:id="@+id/main_tv_id"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:maxLines="2"
+                    android:text="" />
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingLeft="-2px"
+                android:text="（Order No.）" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:paddingLeft="10px"
+                    android:text="房间号：" />
+
+                <TextView
+                    android:id="@+id/main_tv_roomid"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="" />
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingLeft="-2px"
+                android:text="（Room No.）" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:paddingLeft="10px"
+                    android:text="收费方式：" />
+
+                <TextView
+                    android:id="@+id/main_tv_type"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="" />
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingLeft="-2px"
+                android:text="（Charging Methods）" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:paddingLeft="10px"
+                    android:text="节目名称：" />
+
+                <TextView
+                    android:id="@+id/main_tv_name"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:maxLines="2"
+                    android:text="" />
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingLeft="-2px"
+                android:text="（Movie Name）" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:paddingLeft="10px"
+                    android:text="点播时间：" />
+
+                <TextView
+                    android:id="@+id/main_tv_createTime"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="" />
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingLeft="-2px"
+                android:text="（Order Time）" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:paddingLeft="10px"
+                    android:text="收费金额：" />
+
+                <TextView
+                    android:id="@+id/main_tv_money"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="" />
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingLeft="-2px"
+                android:text="（Service Cost）" />
+
+        </LinearLayout>
+
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:layout_marginBottom="15px"
+            android:layout_marginLeft="15px"
+            android:layout_marginRight="15px"
+            android:layout_marginTop="5px"
+            android:gravity="bottom"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/main_btn_print"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="15px"
+                android:layout_marginRight="15px"
+                android:layout_weight="1"
+                android:background="@drawable/print_btn_selecter"
+                android:gravity="center"
+                android:text="打印订单" />
+
+            <Button
+                android:id="@+id/main_btn_ignore"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="15px"
+                android:layout_marginRight="15px"
+                android:layout_weight="1"
+                android:background="@drawable/print_btn_selecter"
+                android:gravity="center"
+                android:text="忽略订单" />
+        </LinearLayout>
+    </LinearLayout>
+
+
     <RelativeLayout
         android:layout_width="322px"
         android:layout_height="575px"
         android:layout_marginLeft="10px"
         android:layout_marginRight="10px"
         android:layout_marginTop="25px"
-        android:background="@drawable/bg_order">
+        android:background="@drawable/bg_order"
+        android:visibility="gone">
 
         <LinearLayout
             android:id="@+id/fragment_detail_menu"
@@ -192,7 +399,7 @@
                     android:textSize="25px" />
             </LinearLayout>
 
-            <LinearLayout
+            <!--<LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="15px"
@@ -201,29 +408,32 @@
                 android:layout_marginTop="5px"
                 android:gravity="center"
                 android:orientation="horizontal">
+
                 <Button
                     android:id="@+id/main_btn_print"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
                     android:layout_marginLeft="15px"
                     android:layout_marginRight="15px"
+                    android:layout_weight="1"
                     android:background="@drawable/print_btn_selecter"
                     android:gravity="center"
-                    android:text="打印订单"/>
+                    android:text="打印订单" />
+
                 <Button
                     android:id="@+id/main_btn_ignore"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
                     android:layout_marginLeft="15px"
                     android:layout_marginRight="15px"
+                    android:layout_weight="1"
                     android:background="@drawable/print_btn_selecter"
                     android:gravity="center"
-                    android:text="忽略订单"/>
-            </LinearLayout>
+                    android:text="忽略订单" />
+            </LinearLayout>-->
 
         </LinearLayout>
 
     </RelativeLayout>
+
 </LinearLayout>
