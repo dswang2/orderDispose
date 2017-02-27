@@ -135,9 +135,18 @@ public class AutoUpdateService extends Service {
             public void onResponse(Call call, Response response) throws IOException {
                 String json = response.body().string();
 
+                Order order = null;
                 //解析访问网络获取到的 json数据 ，打印出来
-                final Order order = new Gson().fromJson(json, Order.class);
+                try {
+                    order = new Gson().fromJson(json, Order.class);
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
                 Log.d(TAG, "onResponse: " + order);
+
+                if(order == null){
+                    return;
+                }
 
                 int preSize = application.getOrderListSize();
                 int nextSize = order.getData().size();

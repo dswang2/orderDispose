@@ -675,8 +675,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     protected void onDestroy() {
         super.onDestroy();
+
+        mHandler.removeCallbacksAndMessages(null);
+
         if (conn != null) {
             unbindService(conn); // unBindService
+        }
+        if(conn_update != null){
+            unbindService(conn_update);
         }
         unregisterReceiver(mBroadcastReceiver);
     }
