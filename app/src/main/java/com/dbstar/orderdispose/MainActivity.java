@@ -337,6 +337,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         refreshDetailList(filmOrder);
 
         //打印订单列表第一条
+        Log.d(TAG, "isPrintOnGet: " + isPrintOnGet);
         if (isPrintOnGet && application.isPrintAuto()) {
             //设置为打印状态？
             isOrderPrinting = true;
@@ -388,11 +389,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     //刷新详情列表
     public void refreshDetailList(final FilmOrder.DataBean filmOrder) {
+        filmOrderDetail = filmOrder;
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                filmOrderDetail = filmOrder;
-
                 if (filmOrderDetail != null) {
                     main_tv_id.setText(filmOrderDetail.getId());
                     main_tv_roomid.setText(filmOrderDetail.getRoomid());
@@ -596,6 +596,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 if (flag_list == HISTORYLIST) {
                     break;
                 }
+
                 //访问后台，标记订单已处理
                 markOrderCompled(filmOrderDetail.getId());
                 break;
@@ -628,10 +629,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         for (int i = 0; i < application.getPrint_count(); i++) {
             printTicket();
         }
+
+        Log.d(TAG, "flag_list: " + flag_list);
         //如果目前是已处理订单，打印完不需要标记订单已处理，直接退出
         if (flag_list == HISTORYLIST) {
             return;
         }
+
+
+        //打印完，标记为非打印状态
+        isOrderPrinting = false;
+
         //访问后台，标记订单已处理
         markOrderCompled(filmOrderDetail.getId());
     }
@@ -781,12 +789,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     protected void onDestroy() {
         super.onDestroy();
+
+
         if (conn != null) {
             unbindService(conn); // unBindService
         }
         if (conn_update != null) {
             unbindService(conn_update);
         }
+
+        //移除监听器等
+        mHandler.removeCallbacksAndMessages(null);
+
         unregisterReceiver(mBroadcastReceiver);
     }
 
