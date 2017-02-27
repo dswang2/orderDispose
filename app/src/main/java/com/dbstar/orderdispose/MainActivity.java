@@ -853,10 +853,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             myService.setOnMessageListener(new OnMessageListener() {
                 @Override
                 public void onUpdate(final int isUpdate) {
-                    Log.d("Service", "onUpdate");
+                    Log.d("Service", "onUpdate = " + isUpdate);
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
+                            Log.d("Service", "onUpdate = " + isUpdate);
                             if (isUpdate == Constant.MSG_NET_ERR) {
                                 if (mNewOrderDialog != null && !mNewOrderDialog.isShowing()) {
                                     bt_update_dialog.setText("网络连接断开，请检查网络");
@@ -870,6 +871,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                 }
                                 return;
                             }
+                            Log.d("Service", "application.isPrintAuto() = " + application.isPrintAuto());
+                            Log.d("Service", "isOrderPrinting = " + isOrderPrinting);
 
                             if (!application.isPrintAuto() && mNewOrderDialog != null && !mNewOrderDialog.isShowing()) {
                                 //设置为不自动打印，显示新订单对话框
@@ -878,6 +881,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             } else if (application.isPrintAuto() && isOrderPrinting == false) {
                                 //打印新订单
                                 //1、访问网络，获取新的订单
+
+                                Log.d("Service", "getUnHandleOrderList()");
+
                                 getUnHandleOrderList();
                                 //获取新订单后，就判断是否打印新订单，是自动打印新订单，就打印
                                 flag_list = UNHANDLELIST;
