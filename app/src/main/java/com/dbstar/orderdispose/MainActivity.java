@@ -345,7 +345,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             printOrderDetail();
         }
 
-//        String urlOrderDetail = URL.OrderItem + "?" + URL.NUMBER + "=" + seqnumber;
+//        String urlOrderDetail = application.getServiceIP() + URL.OrderItem + "?" + URL.NUMBER + "=" + seqnumber;
 //        HttpUtil.sendOkHttpRequest(urlOrderDetail, new Callback() {
 //
 //            @Override
@@ -417,7 +417,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     //获取未处理订单列表
     public void getUnHandleOrderList() {
         try {
-            HttpUtil.sendOkHttpRequest(URL.NewFilmOrder, new Callback() {
+            HttpUtil.sendOkHttpRequest(application.getServiceIP() + URL.NewFilmOrder, new Callback() {
 
                 @Override
                 public void onResponse(Call call, Response response) throws IOException {
@@ -487,7 +487,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     //获取 历史订单列表
     public void getHistoryOrderList() {
         try {
-            HttpUtil.sendOkHttpRequest(URL.OldFilmOrder, new Callback() {
+            HttpUtil.sendOkHttpRequest(application.getServiceIP() + URL.OldFilmOrder, new Callback() {
 
                 @Override
                 public void onResponse(Call call, Response response) throws IOException {
@@ -544,7 +544,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
      * @param seqnumber ,订单编号
      */
     public void markOrderCompled(String seqnumber) {
-        String markUrk = URL.FilmOrderMark + "?" + URL.OrderMarkID + "=" + seqnumber;
+        String markUrk = application.getServiceIP() + URL.FilmOrderMark + "?" + URL.OrderMarkID + "=" + seqnumber;
         try {
             HttpUtil.sendOkHttpRequest(markUrk, new Callback() {
                 @Override

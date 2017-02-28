@@ -14,47 +14,47 @@ public class URL {
 
     //http://192.168.0.232:8080/bar/media/getMediaNewOrder.do
     // 电影未处理订单
-    public static  String NewFilmOrder = IP + "/bar/media/getMediaNewOrder.do";
+    public static  String NewFilmOrder = "/bar/media/getMediaNewOrder.do";
     // 电影已处理订单
-    public static  String OldFilmOrder = IP + "/bar/media/getMediaOldOrder.do";
+    public static  String OldFilmOrder = "/bar/media/getMediaOldOrder.do";
     // 电影订单标记处理完成
-    public static  String FilmOrderMark = IP + "/bar/media/getMediaOldOrderStaus.do";
+    public static  String FilmOrderMark = "/bar/media/getMediaOldOrderStaus.do";
 
     //点餐已处理订单
-    public static  String OldOrder = IP + "/bar/media/getOldOrder.do";
+    public static  String OldOrder = "/bar/media/getOldOrder.do";
 
     //点餐未处理订单
-    public static  String NewOrder = IP + "/bar/media/getNewOrder.do";
+    public static  String NewOrder = "/bar/media/getNewOrder.do";
 
     //点餐订单详情
-    public static  String OrderItem = IP + "/bar/media/getOrderItem.do";
+    public static  String OrderItem = "/bar/media/getOrderItem.do";
     //点餐订单详情-订单号
     public static  String NUMBER = "number";
 
     //标记已经处理完成
-    public static  String OrderMark = IP + "/bar/media/updateMark.do";
+    public static  String OrderMark = "/bar/media/updateMark.do";
     //订单号
     public static  String OrderMarkID = "id";
     //标记订单已经处理完毕
     public static  String OrderMarkFLAG = "flag=0";
 
     //购物已处理订单
-    public static  String ShoppingOldOrder = IP + "/bar/media/getShoppingOldOrder.do";
+    public static  String ShoppingOldOrder = "/bar/media/getShoppingOldOrder.do";
 
     //购物未处理订单
-    public static  String ShoppingNewOrder = IP + "/bar/media/getShoppingNewOrder.do\n";
+    public static  String ShoppingNewOrder = "/bar/media/getShoppingNewOrder.do\n";
 
     //购物详情
-    public static  String ShoppingOrderItem = IP + "/bar/media/getShoppingOrderItem.do";
+    public static  String ShoppingOrderItem = "/bar/media/getShoppingOrderItem.do";
 
     //一键送物已处理订单
-    public static  String AccessoriesOldOrder = IP + "/bar/media/getAccessoriesOldOrder.do";
+    public static  String AccessoriesOldOrder = "/bar/media/getAccessoriesOldOrder.do";
 
     //一键送物未处理订单
-    public static  String AccessoriesNewOrder = IP + "/bar/media/getAccessoriesNewOrder.do";
+    public static  String AccessoriesNewOrder = "/bar/media/getAccessoriesNewOrder.do";
 
 
     //一键送物详情
-    public static  String AccessoriesOrderItem = IP + "/bar/media/getAccessoriesOrderItem.do";
+    public static  String AccessoriesOrderItem = "/bar/media/getAccessoriesOrderItem.do";
 
 }

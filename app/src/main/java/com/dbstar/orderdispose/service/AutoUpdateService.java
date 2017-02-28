@@ -131,7 +131,7 @@ public class AutoUpdateService extends Service {
         }
 
         try {
-            HttpUtil.sendOkHttpRequest(URL.NewFilmOrder, new Callback() {
+            HttpUtil.sendOkHttpRequest(application.getServiceIP() + URL.NewFilmOrder, new Callback() {
                 @Override
                 public void onResponse(Call call, Response response) throws IOException {
                     String json = response.body().string();

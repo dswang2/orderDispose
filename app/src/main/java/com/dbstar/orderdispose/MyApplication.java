@@ -26,16 +26,15 @@ public class MyApplication extends Application {
         setIsPrintAuto(sp.getBoolean(Constant.AUTO_PRINT,false));
         setIsVoiceEnable(sp.getBoolean(Constant.VOICE_ENABLE, false));
         setPrint_count(sp.getInt(Constant.PRINT_COUNT,1));
-        setServiceIP(sp.getString(Constant.SERVICE_IP,null));
+        setServiceIP(sp.getString(Constant.SERVICE_IP,""));
     }
 
     public String getServiceIP() {
-        return serviceIP;
+        return "http://"+serviceIP+":8080";
     }
 
     public void setServiceIP(String serviceIP) {
         this.serviceIP = serviceIP;
-        URL.IP = "http://"+serviceIP+":8080";
     }
 
     public boolean isPrintAuto() {
