@@ -109,7 +109,7 @@
             android:layout_marginLeft="15px"
             android:layout_marginRight="15px"
             android:layout_weight="1"
-            android:text="订单打印重复次数"
+            android:text="订单打印重复数"
             android:textColor="@color/black"
             android:textSize="20px" />
 
@@ -158,6 +158,46 @@
 
 
     </LinearLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="5px"
+        android:layout_marginLeft="20px"
+        android:layout_marginRight="20px"
+        android:layout_marginTop="5px"
+        android:background="@drawable/set_bg"
+        android:gravity="center_vertical"
+        android:paddingBottom="5px"
+        android:paddingTop="5px">
+
+        <EditText
+            android:id="@+id/set_et_ip"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_centerVertical="true"
+            android:layout_marginLeft="15px"
+            android:layout_marginRight="15px"
+            android:background="@null"
+            android:focusable="false"
+            android:maxLines="1"
+            android:singleLine="true"
+            android:text="服务器地址配置"
+            android:textColor="@color/black"
+            android:textSize="20px" />
+
+
+        <Button
+            android:id="@+id/set_bt_ipset"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_marginLeft="15px"
+            android:layout_marginRight="30px"
+            android:gravity="center"
+            android:text="设置" />
+    </RelativeLayout>
 
     <Button
         android:id="@+id/set_bt_back"

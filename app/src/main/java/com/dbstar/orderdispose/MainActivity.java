@@ -292,46 +292,49 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     //根据订单号，获取详情数据
     public void getDetailList(String seqnumber,final Boolean isPrintOnGet) {
 
-        String urlOrderDetail = URL.OrderItem + "?" + URL.NUMBER + "=" + seqnumber;
-        HttpUtil.sendOkHttpRequest(urlOrderDetail, new Callback() {
+        String urlOrderDetail = application.getServiceIP() + URL.OrderItem + "?" + URL.NUMBER + "=" + seqnumber;
+        try {
+            HttpUtil.sendOkHttpRequest(urlOrderDetail, new Callback() {
 
-            @Override
-            public void onResponse(Call call, Response response) throws IOException {
-                String json = response.body().string();
-                //订单详情数据 json
-                orderDetail = null;
-                try {
-                    orderDetail = new Gson().fromJson(json, OrderDetail.class);
-                }catch (Exception e){
-                    e.printStackTrace();
-                }
+                @Override
+                public void onResponse(Call call, Response response) throws IOException {
+                    String json = response.body().string();
+                    //订单详情数据 json
+                    orderDetail = null;
+                    try {
+                        orderDetail = new Gson().fromJson(json, OrderDetail.class);
+                    }catch (Exception e){
+                        e.printStackTrace();
+                    }
 
-                datasDetail.clear();
+                    datasDetail.clear();
 
-                if(orderDetail==null){
-                    //刷新详情列表
+                    if(orderDetail==null){
+                        //刷新详情列表
+                        mHandler.sendEmptyMessage(4);
+                        return;
+                    }
+
+                    datasDetail.addAll(orderDetail.getData());
                     mHandler.sendEmptyMessage(4);
-                    return;
+
+                    //打印订单列表第一条
+                    if (isPrintOnGet && application.isPrintAuto()) {
+                        //设置为打印状态？
+                        isOrderPrinting = true;
+                        //打印并标记datas_0
+                        printOrderDetail();
+                    }
                 }
 
-                datasDetail.addAll(orderDetail.getData());
-                mHandler.sendEmptyMessage(4);
+                @Override
+                public void onFailure(Call call, IOException e) {
 
-                //打印订单列表第一条
-                if (isPrintOnGet && application.isPrintAuto()) {
-                    //设置为打印状态？
-                    isOrderPrinting = true;
-                    //打印并标记datas_0
-                    printOrderDetail();
                 }
-            }
-
-            @Override
-            public void onFailure(Call call, IOException e) {
-
-            }
-        });
-
+            });
+        }catch (Exception e){
+            e.printStackTrace();
+        }
     }
 
     //刷新详情列表
@@ -357,109 +360,119 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     //获取未处理订单列表
     public void getUnHandleOrderList() {
-        HttpUtil.sendOkHttpRequest(URL.NewOrder, new Callback() {
+        try {
+            HttpUtil.sendOkHttpRequest(application.getServiceIP() + URL.NewOrder, new Callback() {
 
-            @Override
-            public void onResponse(Call call, Response response) throws IOException {
-                String json = response.body().string();
-                Log.d(TAG, "未处理订单: " + json);
+                @Override
+                public void onResponse(Call call, Response response) throws IOException {
+                    String json = response.body().string();
+                    Log.d(TAG, "未处理订单: " + json);
 
-                //解析访问网络获取到的 json数据 ，打印出来
-                Order order = null;
-                try {
-                    order = new Gson().fromJson(json, Order.class);
-                }catch (Exception e){
-                    e.printStackTrace();
-                }
-                Log.d(TAG, "未处理订单: " + order);
-
-                if(order==null){
-                    return;
-                }
-
-                //通知主线程，刷新订单列表
-                datas.clear();
-                datas.addAll(order.getData());
-
-                //设置 全局最后一次访问网络获取的 订单数目
-                application.setOrderListSize(datas.size());
-
-                //再次确定类型
-                flag_list = UNHANDLELIST;
-                mHandler.sendEmptyMessage(2);
-
-
-
-                //如果设置了自动打印，把第一条打印出来
-                if (application.isPrintAuto()) {
-                    Order.OrderBean datas_0 = null;
-                    if (datas != null && !datas.isEmpty()) {
-                        datas_0 = datas.get(0);
-                        //根据订单号，访问网络，刷新详情列表
+                    //解析访问网络获取到的 json数据 ，打印出来
+                    Order order = null;
+                    try {
+                        order = new Gson().fromJson(json, Order.class);
+                    }catch (Exception e){
+                        e.printStackTrace();
                     }
-                    //无论什么情况，获取到订单列表，把第一条订单抓取出来，显示在详情列表中
-                    if (datas_0 != null) {
-                        String seqs =  datas_0.getNumber();
-                        //访问订单详情并打印出来
-                        //打印前给房间号、订单号赋值
-                        orderNumber = seqs;
-                        orderRoomId = datas_0.getRoomId();
-                        orderTime = datas_0.getCreatedate();
-                        getDetailList(seqs,true);
-                    } else {
-                        isOrderPrinting = false;
+                    Log.d(TAG, "未处理订单: " + order);
+
+                    if(order==null){
+                        return;
                     }
-                }else {
+
+                    //通知主线程，刷新订单列表
+                    datas.clear();
+                    datas.addAll(order.getData());
+
+                    //设置 全局最后一次访问网络获取的 订单数目
+                    application.setOrderListSize(datas.size());
+
+                    //再次确定类型
+                    flag_list = UNHANDLELIST;
+                    mHandler.sendEmptyMessage(2);
+
+
+
+                    //如果设置了自动打印，把第一条打印出来
+                    if (application.isPrintAuto()) {
+                        Order.OrderBean datas_0 = null;
+                        if (datas != null && !datas.isEmpty()) {
+                            datas_0 = datas.get(0);
+                            //根据订单号，访问网络，刷新详情列表
+                        }
+                        //无论什么情况，获取到订单列表，把第一条订单抓取出来，显示在详情列表中
+                        if (datas_0 != null) {
+                            String seqs =  datas_0.getNumber();
+                            //访问订单详情并打印出来
+                            //打印前给房间号、订单号赋值
+                            orderNumber = seqs;
+                            orderRoomId = datas_0.getRoomId();
+                            orderTime = datas_0.getCreatedate();
+                            getDetailList(seqs,true);
+                        } else {
+                            isOrderPrinting = false;
+                        }
+                    }else {
+                        //通知主线程，刷新详情列表，置空详情列表
+                        orderDetail = null;
+                        datasDetail.clear();
+                        mHandler.sendEmptyMessage(4);
+                    }
+
+                }
+
+                @Override
+                public void onFailure(Call call, IOException e) {
+
+                }
+            });
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+    }
+
+    //获取 历史订单列表
+    public void getHistoryOrderList() {
+        try {
+            HttpUtil.sendOkHttpRequest(application.getServiceIP() + URL.OldOrder, new Callback() {
+
+                @Override
+                public void onResponse(Call call, Response response) throws IOException {
+                    String json = response.body().string();
+
+                    //解析访问网络获取到的 json数据 ，打印出来
+                    Order order = null;
+                    try {
+                        order = new Gson().fromJson(json, Order.class);
+                    }catch (Exception e){
+                        e.printStackTrace();
+                    }
+                    Log.d(TAG, "未处理订单: " + order);
+
+                    //通知主线程，刷新订单列表
+                    datas.clear();
+                    if(order!=null){
+                        datas.addAll(order.getData());
+                    }
+                    mHandler.sendEmptyMessage(2);
+
                     //通知主线程，刷新详情列表，置空详情列表
                     orderDetail = null;
                     datasDetail.clear();
                     mHandler.sendEmptyMessage(4);
                 }
 
-            }
+                @Override
+                public void onFailure(Call call, IOException e) {
 
-            @Override
-            public void onFailure(Call call, IOException e) {
-
-            }
-        });
-    }
-
-    //获取 历史订单列表
-    public void getHistoryOrderList() {
-        HttpUtil.sendOkHttpRequest(URL.OldOrder, new Callback() {
-
-            @Override
-            public void onResponse(Call call, Response response) throws IOException {
-                String json = response.body().string();
-
-                //解析访问网络获取到的 json数据 ，打印出来
-                Order order = null;
-                try {
-                    order = new Gson().fromJson(json, Order.class);
-                }catch (Exception e){
-                    e.printStackTrace();
                 }
-                Log.d(TAG, "未处理订单: " + order);
+            });
+        }catch (Exception e){
+            e.printStackTrace();
+        }
 
-                //通知主线程，刷新订单列表
-                datas.clear();
-                if(order!=null){
-                    datas.addAll(order.getData());
-                }
-                mHandler.sendEmptyMessage(2);
-
-                //通知主线程，刷新详情列表，置空详情列表
-                orderDetail = null;
-                datasDetail.clear();
-                mHandler.sendEmptyMessage(4);
-            }
-
-            @Override
-            public void onFailure(Call call, IOException e) {
-
-            }
-        });
     }
 
     /**
@@ -468,31 +481,35 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
      * @param seqnumber ,订单编号
      */
     public void markOrderCompled(String seqnumber) {
-        String markUrk = URL.OrderMark + "?" + URL.OrderMarkID + "=" + seqnumber + "&" + URL.OrderMarkFLAG;
-        HttpUtil.sendOkHttpRequest(markUrk, new Callback() {
-            @Override
-            public void onResponse(Call call, Response response) throws IOException {
-                //循环中移除未处理订单列表的 orderNumber 订单
+        String markUrk = application.getServiceIP() + URL.OrderMark + "?" + URL.OrderMarkID + "=" + seqnumber + "&" + URL.OrderMarkFLAG;
+        try {
+            HttpUtil.sendOkHttpRequest(markUrk, new Callback() {
+                @Override
+                public void onResponse(Call call, Response response) throws IOException {
+                    //循环中移除未处理订单列表的 orderNumber 订单
 
-                //处理订单之后，再进行查询，刷新一次列表
-                getUnHandleOrderList();
+                    //处理订单之后，再进行查询，刷新一次列表
+                    getUnHandleOrderList();
 
-                //刷新完 订单列表 ，刷新详情列表
-                //未处理订单列表刷新后，详情列表应该清空
-                //清空、刷新详情列表
-                //设置详情页javabean 为空
+                    //刷新完 订单列表 ，刷新详情列表
+                    //未处理订单列表刷新后，详情列表应该清空
+                    //清空、刷新详情列表
+                    //设置详情页javabean 为空
 
-                orderDetail = null;
-                datasDetail.clear();
-                mHandler.sendEmptyMessage(4);
+                    orderDetail = null;
+                    datasDetail.clear();
+                    mHandler.sendEmptyMessage(4);
 
-            }
+                }
 
-            @Override
-            public void onFailure(Call call, IOException e) {
-                //
-            }
-        });
+                @Override
+                public void onFailure(Call call, IOException e) {
+                    //
+                }
+            });
+        }catch (Exception e){
+            e.printStackTrace();
+        }
     }
 
 

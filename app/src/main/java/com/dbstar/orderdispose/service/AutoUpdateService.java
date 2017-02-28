@@ -128,48 +128,48 @@ public class AutoUpdateService extends Service {
                 onMessageListener.onUpdate(Constant.MSG_NET_OK);
             }
         }
+        try {
+            HttpUtil.sendOkHttpRequest(application.getServiceIP() + URL.NewOrder, new Callback() {
+                @Override
+                public void onResponse(Call call, Response response) throws IOException {
+                    String json = response.body().string();
 
-
-        HttpUtil.sendOkHttpRequest(URL.NewOrder, new Callback() {
-            @Override
-            public void onResponse(Call call, Response response) throws IOException {
-                String json = response.body().string();
-
-                Order order = null;
-                //解析访问网络获取到的 json数据 ，打印出来
-                try {
-                    order = new Gson().fromJson(json, Order.class);
-                }catch (Exception e){
-                    e.printStackTrace();
-                }
-                Log.d(TAG, "onResponse: " + order);
-
-                if(order == null){
-                    return;
-                }
-
-                int preSize = application.getOrderListSize();
-                int nextSize = order.getData().size();
-                Log.d(TAG, "onResponse: preSize = " + preSize + " nextSize = " + nextSize);
-                // 新的订单列表 长度 大于原有的列表，视为有新消息，并不准确
-                if (preSize < nextSize) {
-                    if(application.isVoiceEnable() && mediaPlayer!=null){
-                        mediaPlayer.start();
+                    Order order = null;
+                    //解析访问网络获取到的 json数据 ，打印出来
+                    try {
+                        order = new Gson().fromJson(json, Order.class);
+                    }catch (Exception e){
+                        e.printStackTrace();
                     }
-                    //打开对话框
-                    if(onMessageListener!=null){;
-                        onMessageListener.onUpdate(Constant.MSG_NEW_ORDER);
+                    Log.d(TAG, "onResponse: " + order);
+
+                    if(order == null){
+                        return;
+                    }
+
+                    int preSize = application.getOrderListSize();
+                    int nextSize = order.getData().size();
+                    Log.d(TAG, "onResponse: preSize = " + preSize + " nextSize = " + nextSize);
+                    // 新的订单列表 长度 大于原有的列表，视为有新消息，并不准确
+                    if (preSize < nextSize) {
+                        if(application.isVoiceEnable() && mediaPlayer!=null){
+                            mediaPlayer.start();
+                        }
+                        //打开对话框
+                        if(onMessageListener!=null){;
+                            onMessageListener.onUpdate(Constant.MSG_NEW_ORDER);
+                        }
                     }
                 }
-            }
 
-            @Override
-            public void onFailure(Call call, IOException e) {
+                @Override
+                public void onFailure(Call call, IOException e) {
 
-            }
-        });
-
-
+                }
+            });
+        }catch (Exception e){
+            e.printStackTrace();
+        }
     }
 
     @Nullable
