@@ -416,67 +416,72 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     //获取未处理订单列表
     public void getUnHandleOrderList() {
-        HttpUtil.sendOkHttpRequest(URL.NewFilmOrder, new Callback() {
+        try {
+            HttpUtil.sendOkHttpRequest(URL.NewFilmOrder, new Callback() {
 
-            @Override
-            public void onResponse(Call call, Response response) throws IOException {
-                String json = response.body().string();
-                Log.d(TAG, "未处理节目订单列表: " + json);
+                @Override
+                public void onResponse(Call call, Response response) throws IOException {
+                    String json = response.body().string();
+                    Log.d(TAG, "未处理节目订单列表: " + json);
 
-                //解析访问网络获取到的 json数据 ，打印出来
-                FilmOrder order = null;
-                try {
-                    order = new Gson().fromJson(json, FilmOrder.class);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                Log.d(TAG, "未处理订单: " + order);
+                    //解析访问网络获取到的 json数据 ，打印出来
+                    FilmOrder order = null;
+                    try {
+                        order = new Gson().fromJson(json, FilmOrder.class);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    Log.d(TAG, "未处理订单: " + order);
 
-                if (order == null) {
-                    return;
-                }
+                    if (order == null) {
+                        return;
+                    }
 
 
-                //通知主线程，刷新订单列表
+                    //通知主线程，刷新订单列表
 //                datas.clear();
 //                datas.addAll(order.getData());
 
-                filmDatas.clear();
-                filmDatas.addAll(order.getData());
+                    filmDatas.clear();
+                    filmDatas.addAll(order.getData());
 
-                //设置 全局最后一次访问网络获取的 订单数目
+                    //设置 全局最后一次访问网络获取的 订单数目
 //               application.setOrderListSize(datas.size());
-                application.setOrderListSize(filmDatas.size());
+                    application.setOrderListSize(filmDatas.size());
 
-                //再次确定类型
-                flag_list = UNHANDLELIST;
-                mHandler.sendEmptyMessage(2);
-
-
+                    //再次确定类型
+                    flag_list = UNHANDLELIST;
+                    mHandler.sendEmptyMessage(2);
 
 
-                //如果设置了自动打印，把第一条打印出来
-                if (application.isPrintAuto()) {
 
 
-                    if (filmDatas != null && !filmDatas.isEmpty()) {
-                        getDetailList(0,true);
-                        //根据订单号，访问网络，刷新详情列表
-                    }else{
-                        isOrderPrinting = false;
+                    //如果设置了自动打印，把第一条打印出来
+                    if (application.isPrintAuto()) {
+
+
+                        if (filmDatas != null && !filmDatas.isEmpty()) {
+                            getDetailList(0,true);
+                            //根据订单号，访问网络，刷新详情列表
+                        }else{
+                            isOrderPrinting = false;
+                        }
+                    }else {
+                        //通知主线程，刷新详情列表，置空详情列表
+                        mHandler.sendEmptyMessage(4);
                     }
-                }else {
-                    //通知主线程，刷新详情列表，置空详情列表
-                    mHandler.sendEmptyMessage(4);
+
                 }
 
-            }
+                @Override
+                public void onFailure(Call call, IOException e) {
 
-            @Override
-            public void onFailure(Call call, IOException e) {
+                }
+            });
+        }catch (Exception e){
+            e.printStackTrace();
+        }
 
-            }
-        });
     }
 
     //获取 历史订单列表
@@ -540,31 +545,35 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
      */
     public void markOrderCompled(String seqnumber) {
         String markUrk = URL.FilmOrderMark + "?" + URL.OrderMarkID + "=" + seqnumber;
-        HttpUtil.sendOkHttpRequest(markUrk, new Callback() {
-            @Override
-            public void onResponse(Call call, Response response) throws IOException {
-                //循环中移除未处理订单列表的 orderNumber 订单
+        try {
+            HttpUtil.sendOkHttpRequest(markUrk, new Callback() {
+                @Override
+                public void onResponse(Call call, Response response) throws IOException {
+                    //循环中移除未处理订单列表的 orderNumber 订单
 
-                //处理订单之后，再进行查询，刷新一次列表
-                filmOrderDetail = null;
-                getUnHandleOrderList();
+                    //处理订单之后，再进行查询，刷新一次列表
+                    filmOrderDetail = null;
+                    getUnHandleOrderList();
 
-                //刷新完 订单列表 ，刷新详情列表
-                //未处理订单列表刷新后，详情列表应该清空
-                //清空、刷新详情列表
-                //设置详情页javabean 为空
+                    //刷新完 订单列表 ，刷新详情列表
+                    //未处理订单列表刷新后，详情列表应该清空
+                    //清空、刷新详情列表
+                    //设置详情页javabean 为空
 
 //                orderDetail = null;
 //                datasDetail.clear();
 //                mHandler.sendEmptyMessage(4);
 
-            }
+                }
 
-            @Override
-            public void onFailure(Call call, IOException e) {
-                //
-            }
-        });
+                @Override
+                public void onFailure(Call call, IOException e) {
+                    //
+                }
+            });
+        }catch (Exception e){
+            e.printStackTrace();
+        }
     }
 
 

@@ -130,46 +130,48 @@ public class AutoUpdateService extends Service {
             }
         }
 
+        try {
+            HttpUtil.sendOkHttpRequest(URL.NewFilmOrder, new Callback() {
+                @Override
+                public void onResponse(Call call, Response response) throws IOException {
+                    String json = response.body().string();
 
-        HttpUtil.sendOkHttpRequest(URL.NewFilmOrder, new Callback() {
-            @Override
-            public void onResponse(Call call, Response response) throws IOException {
-                String json = response.body().string();
-
-                //解析访问网络获取到的 json数据 ，打印出来
-                FilmOrder order = null;
-                try {
-                    order = new Gson().fromJson(json, FilmOrder.class);
-                }catch (Exception e){
-                    e.printStackTrace();
-                }
-                Log.d(TAG, "onResponse: " + order);
-
-                if(order == null){
-                    return;
-                }
-
-                int preSize = application.getOrderListSize();
-                int nextSize = order.getData().size();
-                Log.d(TAG, "onResponse: preSize = " + preSize + " nextSize = " + nextSize);
-                // 新的订单列表 长度 大于原有的列表，视为有新消息，并不准确
-                if (preSize < nextSize) {
-                    if(application.isVoiceEnable() && mediaPlayer!=null){
-                        mediaPlayer.start();
+                    //解析访问网络获取到的 json数据 ，打印出来
+                    FilmOrder order = null;
+                    try {
+                        order = new Gson().fromJson(json, FilmOrder.class);
+                    }catch (Exception e){
+                        e.printStackTrace();
                     }
-                    //打开对话框
-                    if(onMessageListener!=null){;
-                        onMessageListener.onUpdate(Constant.MSG_NEW_ORDER);
+                    Log.d(TAG, "onResponse: " + order);
+
+                    if(order == null){
+                        return;
+                    }
+
+                    int preSize = application.getOrderListSize();
+                    int nextSize = order.getData().size();
+                    Log.d(TAG, "onResponse: preSize = " + preSize + " nextSize = " + nextSize);
+                    // 新的订单列表 长度 大于原有的列表，视为有新消息，并不准确
+                    if (preSize < nextSize) {
+                        if(application.isVoiceEnable() && mediaPlayer!=null){
+                            mediaPlayer.start();
+                        }
+                        //打开对话框
+                        if(onMessageListener!=null){;
+                            onMessageListener.onUpdate(Constant.MSG_NEW_ORDER);
+                        }
                     }
                 }
-            }
 
-            @Override
-            public void onFailure(Call call, IOException e) {
+                @Override
+                public void onFailure(Call call, IOException e) {
 
-            }
-        });
-
+                }
+            });
+        }catch (Exception e){
+            e.printStackTrace();
+        }
 
     }
 

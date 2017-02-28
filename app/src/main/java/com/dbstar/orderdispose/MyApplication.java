@@ -4,6 +4,7 @@ import android.app.Application;
 import android.content.SharedPreferences;
 
 import com.dbstar.orderdispose.constant.Constant;
+import com.dbstar.orderdispose.constant.URL;
 
 /**
  * Created by wh on 2017/1/5.
@@ -13,6 +14,8 @@ public class MyApplication extends Application {
     private boolean isPrintAuto;
     private boolean isVoiceEnable;
     private int print_count;
+
+    private String serviceIP;
     private SharedPreferences sp;
 
     @Override
@@ -23,6 +26,16 @@ public class MyApplication extends Application {
         setIsPrintAuto(sp.getBoolean(Constant.AUTO_PRINT,false));
         setIsVoiceEnable(sp.getBoolean(Constant.VOICE_ENABLE, false));
         setPrint_count(sp.getInt(Constant.PRINT_COUNT,1));
+        setServiceIP(sp.getString(Constant.SERVICE_IP,null));
+    }
+
+    public String getServiceIP() {
+        return serviceIP;
+    }
+
+    public void setServiceIP(String serviceIP) {
+        this.serviceIP = serviceIP;
+        URL.IP = "http://"+serviceIP+":8080";
     }
 
     public boolean isPrintAuto() {

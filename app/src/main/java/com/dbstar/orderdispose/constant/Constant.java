@@ -34,4 +34,5 @@ public class Constant {
 
     //后台服务轮询新订单的时间间隔：10秒钟
     public static final int CHECK_TIME = 1 * 1 * 10 * 1000;
+    public static final String SERVICE_IP = "service_ip";
 }

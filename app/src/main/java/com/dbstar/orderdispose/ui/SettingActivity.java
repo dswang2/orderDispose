@@ -13,6 +13,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CompoundButton;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.ToggleButton;
 
@@ -20,6 +21,10 @@ import com.dbstar.orderdispose.MainActivity;
 import com.dbstar.orderdispose.MyApplication;
 import com.dbstar.orderdispose.R;
 import com.dbstar.orderdispose.constant.Constant;
+import com.dbstar.orderdispose.utils.ToastUtils;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Created by wh on 2017/1/6.
@@ -32,6 +37,8 @@ public class SettingActivity extends AppCompatActivity implements CompoundButton
     private SharedPreferences.Editor sp_editor;
     private ToggleButton set_tb_voice;
     private TextView set_tv_count;
+    private EditText set_et_ip;
+    private Button set_bt_ipset;
     private int print_count = 1;    //打印次数
     private MyApplication application;
 
@@ -84,6 +91,12 @@ public class SettingActivity extends AppCompatActivity implements CompoundButton
         print_count = sp.getInt(Constant.PRINT_COUNT, 1);
         set_tv_count.setText(""+ print_count);
 
+        //服务地址设置
+        set_et_ip = (EditText)findViewById(R.id.set_et_ip);
+        set_bt_ipset = (Button) findViewById(R.id.set_bt_ipset);
+        set_bt_ipset.setOnClickListener(this);
+//        String serviceIp = sp.getString(Constant.SERVICE_IP,"");
+//        set_et_ip.setText(serviceIp);
 
         //保存并返回
         Button set_bt_back = (Button)findViewById(R.id.set_bt_back);
@@ -144,6 +157,17 @@ public class SettingActivity extends AppCompatActivity implements CompoundButton
                 sp_editor.putInt(Constant.PRINT_COUNT,print_count);
                 sp_editor.commit();
                 application.setPrint_count(print_count);
+                //保存IP地址
+                if(set_et_ip.hasFocus()) {
+                    String service = set_et_ip.getText().toString();
+                    //对IP地址进行判断，确定是IP地址进行保存
+                    if (isIP(service)) {
+                        sp_editor.putString(Constant.SERVICE_IP, service);
+                        sp_editor.commit();
+                        application.setServiceIP(service);
+
+                    }
+                }
                 //返回
                 onBackPressed();
                 break;
@@ -160,8 +184,74 @@ public class SettingActivity extends AppCompatActivity implements CompoundButton
                 }
                 set_tv_count.setText(""+print_count);
                 break;
+            case R.id.set_bt_ipset:
+                serviceIpSet();
+                break;
             default:
         }
+    }
+
+    private void serviceIpSet() {
+        String service = "";
+        if(set_et_ip.hasFocus()){
+            //有焦点，说明在编辑状态，收集参数，保存，显示为只读
+            service = set_et_ip.getText().toString();
+
+            //对IP地址进行判断，确定是IP地址进行保存，否则toast提示
+            if(!isIP(service)){
+                ToastUtils.showSafeToast(this,"IP地址输入错误，请检查");
+                return;
+            }
+
+            sp_editor.putString(Constant.SERVICE_IP,service);
+            sp_editor.commit();
+            application.setServiceIP(service);
+
+            set_et_ip.setText("服务器地址配置");
+            set_et_ip.setFocusable(false);
+            set_et_ip.setFocusableInTouchMode(false);
+        }else{
+            //无焦点，说明在只读状态，点击后设置为可编辑状态
+            service = sp.getString(Constant.SERVICE_IP,"");
+            if("".equals(service)){
+                set_et_ip.setText("请输入服务器IP");
+            }else{
+                set_et_ip.setText(service);
+            }
+            set_et_ip.setFocusableInTouchMode(true);
+            set_et_ip.setFocusable(true);
+            set_et_ip.requestFocus();
+        }
+    }
+
+    public boolean isIP(String addr)
+    {
+        if(addr==null){
+            return false;
+        }
+        if(addr.length() < 7 || addr.length() > 15 || "".equals(addr))
+        {
+            return false;
+        }
+        /**
+         * 判断IP格式和范围
+         */
+//        String rexp = "([1-9]|[1-9][0-9]|1\\d\\d|2[0-4]\\d|25[0-5])\\." +
+//                "([1-9]|[1-9][0-9]|1\\d\\d|2[0-4]\\d|25[0-5])\\." +
+//                "([1-9]|[1-9][0-9]|1\\d\\d|2[0-4]\\d|25[0-5])\\." +
+//                "([1-9]|[1-9][0-9]|1\\d\\d|2[0-4]\\d|25[0-5])";
+        String rexp = "^(1\\d{2}|2[0-4]\\d|25[0-5]|[1-9]\\d|[1-9])\\."
+                +"(00?\\d|1\\d{2}|2[0-4]\\d|25[0-5]|[1-9]\\d|\\d)\\."
+                +"(00?\\d|1\\d{2}|2[0-4]\\d|25[0-5]|[1-9]\\d|\\d)\\."
+                +"(00?\\d|1\\d{2}|2[0-4]\\d|25[0-5]|[1-9]\\d|\\d)$";
+
+        Pattern pat = Pattern.compile(rexp);
+
+        Matcher mat = pat.matcher(addr);
+
+        boolean ipAddress = mat.find();
+
+        return ipAddress;
     }
 
     private class MyOnNavigationItemSelectedListener implements NavigationView.OnNavigationItemSelectedListener {
