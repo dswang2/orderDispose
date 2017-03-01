@@ -95,8 +95,8 @@ public class SettingActivity extends AppCompatActivity implements CompoundButton
         set_et_ip = (EditText)findViewById(R.id.set_et_ip);
         set_bt_ipset = (Button) findViewById(R.id.set_bt_ipset);
         set_bt_ipset.setOnClickListener(this);
-//        String serviceIp = sp.getString(Constant.SERVICE_IP,"");
-//        set_et_ip.setText(serviceIp);
+        String serviceIp = sp.getString(Constant.SERVICE_IP,"");
+        set_et_ip.setText("服务器IP地址 " + serviceIp);
 
         //保存并返回
         Button set_bt_back = (Button)findViewById(R.id.set_bt_back);
@@ -207,7 +207,7 @@ public class SettingActivity extends AppCompatActivity implements CompoundButton
             sp_editor.commit();
             application.setServiceIP(service);
 
-            set_et_ip.setText("服务器地址配置");
+            set_et_ip.setText("服务器IP地址 "+service);
             set_et_ip.setFocusable(false);
             set_et_ip.setFocusableInTouchMode(false);
         }else{
