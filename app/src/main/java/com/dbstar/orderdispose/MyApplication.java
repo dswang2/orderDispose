@@ -3,6 +3,7 @@ package com.dbstar.orderdispose;
 import android.app.Application;
 import android.content.SharedPreferences;
 
+import com.dbstar.crashcanary.CrashCanary;
 import com.dbstar.orderdispose.constant.Constant;
 import com.dbstar.orderdispose.constant.URL;
 
@@ -21,6 +22,9 @@ public class MyApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
+
+        CrashCanary.install(this);
+
         //从sp获取数据
         sp = this.getSharedPreferences("config", MODE_PRIVATE);
         setIsPrintAuto(sp.getBoolean(Constant.AUTO_PRINT,false));

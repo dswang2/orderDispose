@@ -96,7 +96,12 @@ public class SettingActivity extends AppCompatActivity implements CompoundButton
         set_bt_ipset = (Button) findViewById(R.id.set_bt_ipset);
         set_bt_ipset.setOnClickListener(this);
         String serviceIp = sp.getString(Constant.SERVICE_IP,"");
-        set_et_ip.setText("服务器IP地址 " + serviceIp);
+        if(serviceIp==null || "".equals(serviceIp)){
+            set_et_ip.setText("服务器地址未配置 ");
+        }else {
+            set_et_ip.setText("服务器IP地址 " + serviceIp) ;
+        }
+
 
         //保存并返回
         Button set_bt_back = (Button)findViewById(R.id.set_bt_back);
@@ -214,7 +219,8 @@ public class SettingActivity extends AppCompatActivity implements CompoundButton
             //无焦点，说明在只读状态，点击后设置为可编辑状态
             service = sp.getString(Constant.SERVICE_IP,"");
             if("".equals(service)){
-                set_et_ip.setText("请输入服务器IP");
+                set_et_ip.setText("");
+                set_et_ip.setHint("请输入服务器IP，如 192.168.0.118 ");
             }else{
                 set_et_ip.setText(service);
             }
