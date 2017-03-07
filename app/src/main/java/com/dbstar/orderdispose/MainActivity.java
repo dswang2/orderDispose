@@ -610,8 +610,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 markOrderCompled(filmOrderDetail.getId());
                 break;
             case R.id.main_btn_print:
-                int t1 = 0;
-                int t2 = 100/t1;
                 Log.d(TAG, "onClick: main_btn_print.");
                 printOrderDetail();
                 break;
