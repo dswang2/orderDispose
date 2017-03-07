@@ -543,7 +543,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
                 //访问后台，标记订单已处理
                 markOrderCompled(orderNumber);
-
                 break;
             case R.id.main_btn_print:
                 Log.d(TAG, "onClick: main_btn_print.");
